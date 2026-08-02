@@ -1,0 +1,448 @@
+'use client';
+
+import React, { useState } from 'react';
+import { GlassCard } from '@/components/GlassCard';
+import { useAnimateIn } from '@/hooks/useAnimateIn';
+import {
+  Layers,
+  MapPin,
+  Eye,
+  EyeOff,
+  Filter,
+  Search,
+  Maximize2,
+  Minimize2,
+  Info,
+  Shield,
+  AlertTriangle,
+  FileText,
+  Compass,
+  Zap,
+  Sliders,
+  ChevronRight
+} from 'lucide-react';
+
+export interface SpatialFeature {
+  id: string;
+  name: string;
+  district: string;
+  riverBasin: string;
+  layerCategory: 'FLOOD_EXTENT' | 'RIVER_BUFFER' | 'INFRASTRUCTURE' | 'LAND_TENURE' | 'RISK_HOTSPOT';
+  usufructStatus: 'VERIFIED' | 'IN_DISPUTE' | 'PENDING_REGISTRATION';
+  floodImpact: 'HIGH' | 'MODERATE' | 'MINOR' | 'NONE';
+  essAlignment: string;
+  lat: number;
+  lng: number;
+  karezName?: string;
+  activeGrmTicketsCount: number;
+  notes: string;
+}
+
+const mockSpatialFeatures: SpatialFeature[] = [
+  {
+    id: 'SP-2026-101',
+    name: 'Karez Chashma Mirab Headwork',
+    district: 'Mastung',
+    riverBasin: 'Nari River Basin',
+    layerCategory: 'INFRASTRUCTURE',
+    usufructStatus: 'VERIFIED',
+    floodImpact: 'HIGH',
+    essAlignment: 'ESS1 Risk Assessment • ESS8 Cultural Heritage',
+    lat: 29.7985,
+    lng: 66.8452,
+    karezName: 'Karez Chashma Mirab',
+    activeGrmTicketsCount: 1,
+    notes: 'Ancient 400-year stone aqueduct intake headwork under active structural rehabilitation.',
+  },
+  {
+    id: 'SP-2026-102',
+    name: 'Pringabad 2022 Flood Inundation Zone',
+    district: 'Mastung',
+    riverBasin: 'Nari River Basin',
+    layerCategory: 'FLOOD_EXTENT',
+    usufructStatus: 'IN_DISPUTE',
+    floodImpact: 'HIGH',
+    essAlignment: 'ESS5 Land Resettlement • ESS3 Resource Efficiency',
+    lat: 29.8150,
+    lng: 66.8210,
+    karezName: 'Karez Pringabad',
+    activeGrmTicketsCount: 2,
+    notes: '2022 flood deposit covered 120 hectares of customary agriculture usufruct parcels.',
+  },
+  {
+    id: 'SP-2026-103',
+    name: 'Kawas Karez 500m Buffer Zone',
+    district: 'Ziarat',
+    riverBasin: 'Pishin Lora Basin',
+    layerCategory: 'RIVER_BUFFER',
+    usufructStatus: 'VERIFIED',
+    floodImpact: 'MODERATE',
+    essAlignment: 'ESS6 Biodiversity Conservation • ESS7 Indigenous Peoples',
+    lat: 30.3811,
+    lng: 67.7264,
+    karezName: 'Kawas Karez',
+    activeGrmTicketsCount: 0,
+    notes: 'Riparian buffer protected from heavy machinery excavation to prevent aquifer collapse.',
+  },
+  {
+    id: 'SP-2026-104',
+    name: 'Yaro Water Allocation Dispute Hotspot',
+    district: 'Pishin',
+    riverBasin: 'Pishin Lora Basin',
+    layerCategory: 'RISK_HOTSPOT',
+    usufructStatus: 'IN_DISPUTE',
+    floodImpact: 'HIGH',
+    essAlignment: 'ESS10 Stakeholder Engagement • ESS5 Land Rights',
+    lat: 30.5833,
+    lng: 66.9833,
+    karezName: 'Karez Yaro',
+    activeGrmTicketsCount: 3,
+    notes: 'High safeguard risk hotspot due to downstream water turn disputes between Tarain & Kakar clans.',
+  },
+  {
+    id: 'SP-2026-105',
+    name: 'Kuchlak Customary Usufruct Parcel B4',
+    district: 'Quetta',
+    riverBasin: 'Quetta Valley Sub-basin',
+    layerCategory: 'LAND_TENURE',
+    usufructStatus: 'VERIFIED',
+    floodImpact: 'MINOR',
+    essAlignment: 'ESS5 Customary Tenure Ledger',
+    lat: 30.3725,
+    lng: 66.9588,
+    karezName: 'Karez Kuchlak',
+    activeGrmTicketsCount: 0,
+    notes: 'Registered in Digital Usufruct Ledger; 45 family beneficiary households mapped.',
+  },
+];
+
+export function GisImpactMapper() {
+  const animated = useAnimateIn(100);
+  const [features, setFeatures] = useState<SpatialFeature[]>(mockSpatialFeatures);
+  const [selectedFeature, setSelectedFeature] = useState<SpatialFeature | null>(mockSpatialFeatures[0]);
+  const [districtFilter, setDistrictFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // Layer visibility toggles
+  const [layerVisibility, setLayerVisibility] = useState({
+    FLOOD_EXTENT: true,
+    RIVER_BUFFER: true,
+    INFRASTRUCTURE: true,
+    LAND_TENURE: true,
+    RISK_HOTSPOT: true,
+  });
+
+  // Base map style
+  const [mapStyle, setMapStyle] = useState<'SATELLITE' | 'TERRAIN' | 'DARK'>('DARK');
+
+  const toggleLayer = (layerKey: keyof typeof layerVisibility) => {
+    setLayerVisibility((prev) => ({ ...prev, [layerKey]: !prev[layerKey] }));
+  };
+
+  const filteredFeatures = features.filter((feat) => {
+    const matchesLayer = layerVisibility[feat.layerCategory];
+    const matchesDistrict = districtFilter === 'ALL' || feat.district === districtFilter;
+    const matchesSearch = feat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          feat.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (feat.karezName && feat.karezName.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesLayer && matchesDistrict && matchesSearch;
+  });
+
+  const getLayerColor = (cat: SpatialFeature['layerCategory']) => {
+    switch (cat) {
+      case 'FLOOD_EXTENT': return 'bg-cyan-500 text-cyan-200 border-cyan-400';
+      case 'RIVER_BUFFER': return 'bg-blue-500 text-blue-200 border-blue-400';
+      case 'INFRASTRUCTURE': return 'bg-emerald-500 text-emerald-200 border-emerald-400';
+      case 'LAND_TENURE': return 'bg-amber-500 text-amber-200 border-amber-400';
+      case 'RISK_HOTSPOT': return 'bg-rose-500 text-rose-200 border-rose-400 animate-pulse';
+    }
+  };
+
+  const getLayerBadgeText = (cat: SpatialFeature['layerCategory']) => {
+    switch (cat) {
+      case 'FLOOD_EXTENT': return '2022 Flood Extent';
+      case 'RIVER_BUFFER': return 'River/Karez Buffer Zone';
+      case 'INFRASTRUCTURE': return 'Reconstruction Civil Site';
+      case 'LAND_TENURE': return 'Land Usufruct Rights';
+      case 'RISK_HOTSPOT': return 'ESF Safeguard Hotspot';
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 px-2 sm:px-0">
+      {/* Page Header */}
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/10 pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2.5 py-1 text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded">
+              DECENUTRALIZED WEBGIS PIPELINE
+            </span>
+            <span className="px-2.5 py-1 text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded">
+              SPATIAL IMPACT ENGINE
+            </span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            GIS Impact <span className="bg-gradient-to-r from-cyan-400 via-emerald-400 to-blue-400 bg-clip-text text-transparent">Mapper</span>
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            World Bank Component 3 WebGIS: 2022 Flood Extents, Karez Buffers, Infrastructure Sites & ESF Risk Hotspots
+          </p>
+        </div>
+
+        {/* District Filter & Search Controls */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search Karez or Site..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 w-44 sm:w-56"
+            />
+          </div>
+
+          <select
+            value={districtFilter}
+            onChange={(e) => setDistrictFilter(e.target.value)}
+            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+          >
+            <option value="ALL">All Districts</option>
+            <option value="Quetta">Quetta</option>
+            <option value="Mastung">Mastung</option>
+            <option value="Pishin">Pishin</option>
+            <option value="Ziarat">Ziarat</option>
+          </select>
+        </div>
+      </header>
+
+      {/* Main Grid: Layer Controller (Left) + Interactive Map & Inspector (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        {/* Layer Controls Panel (1 Col) */}
+        <GlassCard className="p-5 lg:col-span-1 space-y-6">
+          <div>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3">
+              <Layers className="w-4 h-4 text-cyan-400" />
+              Spatial Layers Toggle
+            </h2>
+            <div className="space-y-2">
+              {[
+                { key: 'FLOOD_EXTENT', label: '2022 Flood Extents', color: 'border-cyan-400 bg-cyan-500/20 text-cyan-300' },
+                { key: 'RIVER_BUFFER', label: 'River & Karez Buffers', color: 'border-blue-400 bg-blue-500/20 text-blue-300' },
+                { key: 'INFRASTRUCTURE', label: 'Civil Works Sites', color: 'border-emerald-400 bg-emerald-500/20 text-emerald-300' },
+                { key: 'LAND_TENURE', label: 'Land Usufruct Rights', color: 'border-amber-400 bg-amber-500/20 text-amber-300' },
+                { key: 'RISK_HOTSPOT', label: 'ESF Risk Hotspots', color: 'border-rose-400 bg-rose-500/20 text-rose-300' },
+              ].map((layer) => {
+                const isVisible = layerVisibility[layer.key as keyof typeof layerVisibility];
+                return (
+                  <button
+                    key={layer.key}
+                    onClick={() => toggleLayer(layer.key as keyof typeof layerVisibility)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                      isVisible
+                        ? `${layer.color} shadow-sm`
+                        : 'bg-slate-950 text-slate-500 border-slate-800 hover:text-slate-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${layer.color.split(' ')[1]}`} />
+                      {layer.label}
+                    </span>
+                    {isVisible ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-600" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Base Map Selector */}
+          <div>
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Base Map Style</h3>
+            <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+              {(['DARK', 'SATELLITE', 'TERRAIN'] as const).map((style) => (
+                <button
+                  key={style}
+                  onClick={() => setMapStyle(style)}
+                  className={`py-1.5 font-mono text-[10px] rounded-lg transition-all ${
+                    mapStyle === style
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {style}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Spatial Legend Key */}
+          <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
+            <h3 className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-amber-400" />
+              Balochistan Karez Legend
+            </h3>
+            <div className="space-y-1.5 text-[11px] text-slate-400 font-mono">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" /> 2022 Flood Polygon
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-400" /> 500m Aqueduct Buffer
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> Intake Headworks
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Usufruct Parcel
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-400 animate-pulse" /> Safeguard Dispute
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* WebGIS Map Container (3 Cols) */}
+        <div className="lg:col-span-3 space-y-6">
+          <GlassCard className="p-0 overflow-hidden relative border-cyan-500/30">
+            
+            {/* Map Canvas Visualizer */}
+            <div className="w-full h-[480px] bg-slate-950 relative flex items-center justify-center overflow-hidden select-none">
+              
+              {/* Simulated Map Grid Lines & Topo Contours */}
+              <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
+              
+              {/* Map Title Overlay */}
+              <div className="absolute top-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md border border-white/10 px-3.5 py-2 rounded-xl text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-bold text-white font-mono">MAPLIBRE GL JS • WEBGIS SPATIAL VIEW</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  Coordinate Frame: EPSG:4326 (WGS84) • Balochistan Grid
+                </span>
+              </div>
+
+              {/* Interactive Map Nodes / Spatial Features */}
+              <div className="absolute inset-0 p-8 flex items-center justify-center">
+                <div className="relative w-full h-full border border-cyan-500/20 rounded-2xl bg-slate-900/40 p-6 flex flex-col justify-between">
+                  
+                  {/* Decorative River Basin Polyline Path */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30" viewBox="0 0 800 400" fill="none">
+                    <path d="M 50 80 Q 250 180, 450 120 T 750 320" stroke="#06b6d4" strokeWidth="4" strokeDasharray="6 6" />
+                    <path d="M 120 300 Q 350 220, 600 280 T 780 100" stroke="#3b82f6" strokeWidth="3" opacity="0.6" />
+                  </svg>
+
+                  {/* Render Feature Markers */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6 relative z-10 my-auto">
+                    {filteredFeatures.map((feat) => {
+                      const isSelected = selectedFeature?.id === feat.id;
+                      return (
+                        <div
+                          key={feat.id}
+                          onClick={() => setSelectedFeature(feat)}
+                          className={`p-4 rounded-xl border transition-all cursor-pointer group backdrop-blur-md ${
+                            isSelected
+                              ? 'bg-slate-900 border-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.3)] scale-105'
+                              : 'bg-slate-900/80 border-slate-700 hover:border-slate-500 hover:bg-slate-900'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getLayerColor(feat.layerCategory)}`}>
+                              {feat.layerCategory.replace('_', ' ')}
+                            </span>
+                            <MapPin className={`w-4 h-4 ${isSelected ? 'text-cyan-400' : 'text-slate-500 group-hover:text-cyan-400'}`} />
+                          </div>
+                          
+                          <h4 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
+                            {feat.name}
+                          </h4>
+                          <p className="text-[11px] text-slate-400 mt-1 font-mono">
+                            {feat.district} • {feat.riverBasin}
+                          </p>
+
+                          <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2 text-[10px]">
+                            <span className={`font-semibold ${feat.usufructStatus === 'VERIFIED' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                              {feat.usufructStatus}
+                            </span>
+                            <span className="font-mono text-cyan-300">
+                              Lat: {feat.lat.toFixed(2)}, Lon: {feat.lng.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Spatial Feature Detail Drawer / Inspection Card */}
+          {selectedFeature && (
+            <GlassCard className="p-6 border-cyan-500/40 bg-slate-900/90 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-start justify-between border-b border-white/10 pb-4 mb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded font-mono font-bold text-xs border bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
+                      {selectedFeature.id}
+                    </span>
+                    <span className={`px-2.5 py-0.5 rounded font-mono font-bold text-xs border ${getLayerColor(selectedFeature.layerCategory)}`}>
+                      {getLayerBadgeText(selectedFeature.layerCategory)}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mt-2">{selectedFeature.name}</h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-slate-800 text-slate-300 font-mono text-xs rounded-lg border border-slate-700">
+                    {selectedFeature.district} District
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-slate-400 font-medium block mb-1">Spatial Unit Ethnographic Notes:</span>
+                    <p className="bg-slate-950/60 p-3 rounded-xl border border-white/5 text-slate-200 leading-relaxed">
+                      {selectedFeature.notes}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 font-medium block mb-1">World Bank ESS Framework Alignment:</span>
+                    <p className="bg-slate-950/60 p-3 rounded-xl border border-cyan-500/20 text-cyan-300 font-mono">
+                      {selectedFeature.essAlignment}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-3">
+                  <div className="flex justify-between items-center py-1 border-b border-white/5">
+                    <span className="text-slate-400">River Basin Sub-system:</span>
+                    <span className="font-semibold text-white">{selectedFeature.riverBasin}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-white/5">
+                    <span className="text-slate-400">Customary Usufruct Tenure:</span>
+                    <span className={`font-bold font-mono ${selectedFeature.usufructStatus === 'VERIFIED' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {selectedFeature.usufructStatus}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-white/5">
+                    <span className="text-slate-400">2022 Flood Impact Severity:</span>
+                    <span className="font-bold text-cyan-300 font-mono">{selectedFeature.floodImpact}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-slate-400">Linked Active GRM Tickets:</span>
+                    <span className="font-bold text-rose-400 font-mono text-sm">{selectedFeature.activeGrmTicketsCount} Tickets</span>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

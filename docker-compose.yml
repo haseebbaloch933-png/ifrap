@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  web-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: ifrap_frontend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://ifrap.gov.pk/api/v1
+      - NEXT_PUBLIC_MAPBOX_TOKEN=${MAPBOX_LOCAL_KEY:-pk.placeholder}
+    networks:
+      - ifrap_app_net
+    ports:
+      - "3000:3000"
+
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ifrap_backend_api
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASS:-postgres}@db-postgis:5432/ifrap_production
+      - REDIS_URL=redis://redis-cache:6379
+      - PSS_CRYPTO_KEY_PATH=/etc/ssl/certs/ntisb_key.pem
+    volumes:
+      - secure_documents:/app/uploads
+    networks:
+      - ifrap_app_net
+      - ifrap_db_net
+    depends_on:
+      - db-postgis
+      - redis-cache
+
+  geoserver:
+    image: osgeo/geoserver:2.24.x
+    container_name: ifrap_geoserver
+    restart: always
+    environment:
+      - GEOSERVER_ADMIN_PASSWORD=${GEOSERVER_ADMIN_PASS:-geoserver}
+      - CORS_ENABLED=true
+    volumes:
+      - geoserver_data:/opt/geoserver/data_dir
+    networks:
+      - ifrap_app_net
+      - ifrap_db_net
+    depends_on:
+      - db-postgis
+
+  db-postgis:
+    image: ankane/pgvector:v0.5.1-pg15
+    container_name: ifrap_postgis
+    restart: always
+    environment:
+      - POSTGRES_DB=ifrap_production
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASS:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/db:/docker-entrypoint-initdb.d
+    networks:
+      - ifrap_db_net
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: ifrap_redis
+    networks:
+      - ifrap_app_net
+
+networks:
+  ifrap_app_net:
+    driver: bridge
+  ifrap_db_net:
+    internal: true # Fully isolated database network
+
+volumes:
+  pgdata:
+  geoserver_data:
+  secure_documents:

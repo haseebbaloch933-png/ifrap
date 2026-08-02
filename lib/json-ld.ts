@@ -1,0 +1,208 @@
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://anthropologyportfolio.vercel.app';
+
+export interface PersonSchema {
+  '@type': string;
+  '@id': string;
+  name: string;
+  jobTitle: string;
+  description: string;
+  knowAbout: string[];
+  areaServed: string;
+  url: string;
+}
+
+export interface ProfessionalServiceSchema {
+  '@type': string;
+  '@id': string;
+  name: string;
+  description: string;
+  url: string;
+  areaServed: string;
+  knowAbout: string[];
+  provider?: {
+    '@type': string;
+    name: string;
+  };
+  offerCatalog: {
+    '@type': string;
+    name: string;
+    itemListElement: Array<{
+      '@type': string;
+      item: {
+        '@type': string;
+        name: string;
+        description: string;
+      };
+    }>;
+  };
+}
+
+export interface DatasetSchema {
+  '@type': string | string[];
+  '@id': string;
+  name: string;
+  description: string;
+  url: string;
+  spatialCoverage: {
+    '@type': string;
+    name: string;
+    geo?: {
+      '@type': string;
+      box?: string;
+    };
+  };
+  variableMeasured: string[];
+  provider: {
+    '@type': string;
+    name: string;
+    url: string;
+  };
+}
+
+export interface WebSiteSchema {
+  '@type': string;
+  '@id': string;
+  name: string;
+  url: string;
+  description: string;
+  publisher?: {
+    '@type': string;
+    name: string;
+  };
+}
+
+export function generatePersonSchema(siteUrl: string = SITE_URL): PersonSchema {
+  return {
+    '@type': 'Person',
+    '@id': `${siteUrl}/#person`,
+    name: 'Applied Anthropologist Consultant',
+    jobTitle: 'Freelance Applied Anthropologist & WebGIS Specialist',
+    description:
+      'Freelance applied anthropologist specializing in decolonial WebGIS, Senian Multidimensional Poverty Index analytics, and customary usufruct rights governance.',
+    url: siteUrl,
+    areaServed: 'Balochistan, Pakistan',
+    knowAbout: [
+      'Applied Anthropology',
+      'WebGIS',
+      'M&E Telemetry',
+      'Senian MPI',
+      'Customary Usufruct Rights',
+      'Indigenous Technical Knowledge',
+      'Participatory GIS',
+    ],
+  };
+}
+
+export function generateProfessionalServiceSchema(siteUrl: string = SITE_URL): ProfessionalServiceSchema {
+  return {
+    '@type': 'ProfessionalService',
+    '@id': `${siteUrl}/#service`,
+    name: 'Applied Anthropology & WebGIS Consulting',
+    description:
+      'Freelance applied anthropology consulting, WebGIS mapping, Senian M&E telemetry, multidimensional poverty analytics, and customary usufruct rights governance.',
+    url: siteUrl,
+    areaServed: 'Balochistan, Pakistan',
+    knowAbout: [
+      'Applied Anthropology',
+      'Decolonial WebGIS',
+      'Senian MPI Analytics',
+      'Customary Usufruct Rights',
+      'M&E Telemetry',
+    ],
+    provider: {
+      '@type': 'Person',
+      name: 'Applied Anthropologist Consultant',
+    },
+    offerCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Applied Anthropology & Telemetry Consulting Services',
+      itemListElement: [
+        {
+          '@type': 'OfferCatalogItem',
+          item: {
+            '@type': 'Service',
+            name: 'Decolonial WebGIS & Spatial Analysis',
+            description:
+              'Interactive cartographic mapping of indigenous Karez water systems and decolonial ITK spatial layers.',
+          },
+        },
+        {
+          '@type': 'OfferCatalogItem',
+          item: {
+            '@type': 'Service',
+            name: 'Senian MPI & M&E Telemetry Dashboard',
+            description:
+              'Quantitative evaluation of capability deprivations and real-time Monitoring & Evaluation telemetry for water infrastructure.',
+          },
+        },
+        {
+          '@type': 'OfferCatalogItem',
+          item: {
+            '@type': 'Service',
+            name: 'Customary Usufruct Rights & Fiduciary Shield',
+            description:
+              'Customary land rights verification, digital ledger audit trails, and fiduciary governance certificates.',
+          },
+        },
+      ],
+    },
+  };
+}
+
+export function generateDatasetSchema(siteUrl: string = SITE_URL): DatasetSchema {
+  return {
+    '@type': ['Dataset', 'Project'],
+    '@id': `${siteUrl}/#dataset`,
+    name: 'Balochistan Karez WebGIS & M&E Telemetry Dashboard',
+    description:
+      'Integrated spatial dataset, Senian MPI capability metrics, and customary usufruct rights telemetry for water resource management in Balochistan.',
+    url: `${siteUrl}/telemetry`,
+    spatialCoverage: {
+      '@type': 'Place',
+      name: 'Balochistan, Pakistan',
+      geo: {
+        '@type': 'GeoShape',
+        box: '24.89 60.87 32.06 70.25',
+      },
+    },
+    variableMeasured: [
+      'Senian Multidimensional Poverty Index',
+      'Capability Deprivation Index',
+      'Karez Water Discharge Rate',
+      'Usufruct Right Certificate Registrations',
+      'Indigenous Technical Knowledge Layers',
+    ],
+    provider: {
+      '@type': 'ProfessionalService',
+      name: 'AnthropoGIS Consulting',
+      url: siteUrl,
+    },
+  };
+}
+
+export function generateWebSiteSchema(siteUrl: string = SITE_URL): WebSiteSchema {
+  return {
+    '@type': 'WebSite',
+    '@id': `${siteUrl}/#website`,
+    name: 'AnthropoGIS',
+    url: siteUrl,
+    description:
+      'Freelance applied anthropology consulting, WebGIS mapping, Senian M&E telemetry, multidimensional poverty analytics, and customary usufruct rights governance.',
+    publisher: {
+      '@type': 'ProfessionalService',
+      name: 'AnthropoGIS Consulting',
+    },
+  };
+}
+
+export function getJsonLd(siteUrl: string = SITE_URL) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      generateProfessionalServiceSchema(siteUrl),
+      generatePersonSchema(siteUrl),
+      generateDatasetSchema(siteUrl),
+      generateWebSiteSchema(siteUrl),
+    ],
+  };
+}
