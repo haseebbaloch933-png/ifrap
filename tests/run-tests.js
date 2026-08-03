@@ -269,20 +269,19 @@ export async function retrieveFieldLogEmbeddings(options: RAGSearchOptions): Pro
   }
   const apiAgentRoutePath = path.join(apiAgentDir, 'route.ts');
   if (!fs.existsSync(apiAgentRoutePath)) {
+    // Scaffolding fallback: only written if the route is somehow missing. It
+    // mirrors the SECURE contract in the real app/api/agent/route.ts (getToken
+    // cryptographic verification) so the harness can never regenerate the old
+    // verifyAndDecodeSAMLOrOIDCToken auth bypass (audit C1).
     const apiRouteCode = `import { NextRequest, NextResponse } from 'next/server';
-import { extractTokenFromRequest, verifyAndDecodeSAMLOrOIDCToken } from '@/lib/auth/saml-edge';
+import { getToken } from 'next-auth/jwt';
 import { runAntigravityAgent } from '@/lib/agent/antigravity-graph';
 
 export async function POST(req: NextRequest) {
   try {
-    const token = extractTokenFromRequest(req);
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized: SAML 2.0 / OIDC SSO token required' }, { status: 401 });
-    }
-
-    const claims = await verifyAndDecodeSAMLOrOIDCToken(token);
+    const claims = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!claims || !claims.role) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid SAML 2.0 / OIDC SSO token' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -294,14 +293,14 @@ export async function POST(req: NextRequest) {
 
     const result = await runAntigravityAgent({
       query,
-      userRole: claims.role,
+      userRole: String(claims.role),
       district,
     });
 
     return NextResponse.json({
       success: true,
       data: result,
-      user: { sub: claims.sub, role: claims.role },
+      user: { sub: claims.sub, role: String(claims.role) },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
@@ -559,7 +558,9 @@ const tests = [
       const { assertFileExists, assertContains } = require('../utils/ast-helpers');
       assertFileExists('middleware.ts');
       assertFileExists('lib/auth/rbac.ts');
-      assertContains('middleware.ts', 'verifyAndDecodeSAMLOrOIDCToken');
+      // Security fix (audit C1): edge gate verifies the session via getToken;
+      // the verifyAndDecodeSAMLOrOIDCToken bypass was removed. Guard the secure contract.
+      assertContains('middleware.ts', 'getToken');
       assertContains('middleware.ts', 'getRequiredRolesForPath');
       assertContains('lib/auth/rbac.ts', 'FIELD_ENUMERATOR');
       assertContains('lib/auth/rbac.ts', 'PROVINCIAL_PIU');
@@ -614,7 +615,8 @@ const tests = [
       assertExportExists('lib/rag/retriever.ts', 'retrieveFieldLogEmbeddings');
       assertContains('lib/rag/retriever.ts', 'vectorId');
 
-      assertContains('app/api/agent/route.ts', 'verifyAndDecodeSAMLOrOIDCToken');
+      // Security fix (audit C1): agent route verifies via getToken, not the removed bypass.
+      assertContains('app/api/agent/route.ts', 'getToken');
       assertContains('app/api/agent/route.ts', 'runAntigravityAgent');
     }
   },
