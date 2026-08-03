@@ -8,17 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node tests/run-tests.js",
-    "verify:store": "node --experimental-strip-types scripts/verify-store.mjs",
-    "start:ingest": "node backend/ingest.js",
-    "start:worker": "python backend/worker.py",
-    "test:etl": "node backend/test_payload.js"
+    "verify:store": "node --experimental-strip-types scripts/verify-store.mjs"
   },
   "dependencies": {
     "@langchain/langgraph": "^0.2.20",
     "clsx": "^2.1.1",
-    "express": "^4.22.2",
     "framer-motion": "^11.11.9",
-    "json2csv": "^6.0.0-alpha.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.453.0",
@@ -26,11 +21,9 @@
     "next": "^16.0.0",
     "next-auth": "^4.24.15",
     "pg": "^8.22.0",
-    "pgvector": "^0.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-map-gl": "^8.1.1",
-    "redis": "^4.7.1",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {

@@ -88,13 +88,11 @@ Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
 - **WebGIS** — real MapLibre GL JS maps on `/webgis` and `/gis-impact`
   (`components/DecolonialMap.tsx`, `components/gis-impact/GisImpactMapper.tsx`).
 
-### Intended production backend (not yet wired)
-
-`docker-compose.yml` and `backend/` define the target production stack —
-Express ingest API, PostGIS + pgvector, GeoServer, Redis, on an isolated DB
-network. **The frontend does not call this backend today**; it uses its own
-Next API routes + file store. Wiring the two (or migrating the file store to
-Postgres via the seam) is the main pilot-stage task.
+An earlier Express + Python + Redis ETL pipeline and a GeoServer tile server
+were removed from this repository — they were fully built but never called by
+the shipped app (see the audit report referenced in git history). The app
+talks to Postgres directly through its own persistence seam; there is no
+separate backend API layer.
 
 ---
 
@@ -114,9 +112,9 @@ Shipped and verified:
 
 ## Deployment
 
-The build emits a standalone server (`output: 'standalone'`). Container images
-are defined in `Dockerfile.prod` (frontend) and `backend/Dockerfile`; the full
-stack is orchestrated by `docker-compose.yml`.
+The build emits a standalone server (`output: 'standalone'`). The frontend
+container image is defined in `Dockerfile.prod`; `docker-compose.yml`
+orchestrates it alongside a Postgres+PostGIS+pgvector database.
 
 Required environment for the frontend: `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 (see [`.env.example`](.env.example)). Replace **all** default credentials in
@@ -135,11 +133,11 @@ These are scoping items, not bugs:
 - ~~Move off the single-instance file store onto Postgres~~ **(started)** — a
   Postgres adapter now sits behind the seam and turns on via `DATABASE_URL`
   (see [Pilot: Postgres migration](#pilot-postgres-migration)). Remaining: run
-  it against the pilot DB, then map the generic JSONB store onto the normalized
-  LADM schema (`backend/db/init_schema.sql`) for production.
+  it against the pilot DB, then design a normalized domain schema for
+  production if the generic JSONB store isn't sufficient long-term.
 - Replace `docker-compose.yml` default credentials with managed secrets.
-- Self-host map tiles (GeoServer) instead of the external CARTO CDN for
-  data-locality, and formalize the heuristic PII scrubber into a tested standard.
+- Self-host map tiles instead of the external CARTO CDN for data-locality,
+  and formalize the heuristic PII scrubber into a tested standard.
 
 **Regulatory (require the FPMU's legal/security officers + an accredited assessor)**
 - **World Bank ESF/ESS10:** DPIA, data classification & retention policy,
@@ -160,7 +158,7 @@ a real database and verify.
 docker compose up -d db-postgis
 
 # 2. Point the app at it (dev). The adapter self-creates its tables on first
-#    use; applying backend/db/02_app_store.sql is optional but recommended.
+#    use; applying db/01_app_store.sql is optional but recommended.
 export DATABASE_URL="postgres://postgres:postgres@localhost:5432/ifrap_production"
 
 # 3. Verify the adapter end-to-end (seed, insert/prepend, update, transaction).
@@ -175,9 +173,8 @@ npm run dev
   file store (newest first).
 - With `DATABASE_URL` unset, everything falls back to the file store, so dev and
   the test suite are unaffected.
-- **Follow-up (production):** map the JSONB collections onto the normalized LADM
-  tables in `backend/db/init_schema.sql` (`la_party`, `la_rrr`,
-  `qualitative_field_logs`, …). Both can coexist in the same database.
+- **Follow-up (production):** design a normalized domain schema if the generic
+  JSONB store isn't sufficient long-term — it can coexist in the same database.
 
 ## Repository layout
 
@@ -190,7 +187,7 @@ lib/
   privacy/          PII scrubber
   agent/ · rag/     LangGraph agent + lexical retriever (template-based)
 middleware.ts       Edge RBAC gate (keep matcher in sync with rbac.ts)
-backend/            Intended production backend (Express + Python worker + SQL)
+db/                 SQL applied to db-postgis on first init (docker-entrypoint-initdb.d)
 tests/              E2E/contract suite + matcher drift guard
-docker-compose.yml  Target production stack (frontend + backend + PostGIS + GeoServer + Redis)
+docker-compose.yml  Frontend + Postgres/PostGIS/pgvector database
 ```

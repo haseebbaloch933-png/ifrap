@@ -15,7 +15,7 @@
 # typescript incremental build info
 *.tsbuildinfo
 
-# python bytecode cache (backend/)
+# python bytecode cache
 __pycache__/
 *.pyc
 

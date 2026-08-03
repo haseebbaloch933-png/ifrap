@@ -6,10 +6,10 @@
 -- runtime (CREATE TABLE IF NOT EXISTS), so applying this file is optional but
 -- recommended so the schema is explicit and reviewable.
 --
--- This is the pragmatic pilot store: a generic JSONB collection table. Mapping
--- these collections onto the normalized LADM schema in init_schema.sql
--- (la_party / la_rrr / qualitative_field_logs / ...) is the production-phase
--- follow-up; both coexist in the same database.
+-- This is the pragmatic pilot store: a generic JSONB collection table, not a
+-- normalized domain schema. If the team later designs a normalized schema
+-- (e.g. an LADM-style parties/rights/spatial-units model with PostGIS/pgvector),
+-- it can coexist with this table in the same database.
 
 -- One row per record, keyed by (collection, id). `ord` reproduces the file
 -- store's array ordering: getAll() returns ORDER BY ord ASC and insert()
