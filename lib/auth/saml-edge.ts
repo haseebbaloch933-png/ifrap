@@ -183,27 +183,14 @@ export async function verifyAndDecodeSAMLOrOIDCToken(token: string): Promise<Use
   const samlClaims = parseSAMLAssertion(token);
   if (samlClaims) return samlClaims;
 
-  // 3. Fallback for mock/test SSO tokens or NextAuth session strings
-  if (token.length > 5) {
-    let role: Role = 'FIELD_ENUMERATOR';
-    let email = 'enumerator@ifrap.gov.pk';
-
-    if (token.toLowerCase().includes('director') || token.toLowerCase().includes('admin')) {
-      role = 'FPMU_DIRECTOR';
-      email = 'director@ifrap.gov.pk';
-    } else if (token.toLowerCase().includes('piu')) {
-      role = 'PROVINCIAL_PIU';
-      email = 'piu@ifrap.gov.pk';
-    }
-
-    return {
-      sub: `user-${role.toLowerCase()}`,
-      email,
-      role,
-      issuer: 'Antigravity-SSO',
-      authType: 'SESSION',
-    };
-  }
-
+  // No verifiable claims. Previously there was a fallback here that granted a
+  // role to ANY string longer than 5 chars (e.g. a bearer token containing
+  // "director" → FPMU_DIRECTOR) — a complete auth bypass. It has been removed.
+  //
+  // SECURITY: parseOIDCToken/parseSAMLAssertion above do NOT verify signatures.
+  // The live request path authenticates via NextAuth `getToken` (middleware.ts,
+  // app/api/agent/route.ts), which cryptographically verifies the session JWT.
+  // These parsers must not be used for authorization without adding real
+  // IdP signature verification (JWKS for OIDC, XML-DSig for SAML).
   return null;
 }

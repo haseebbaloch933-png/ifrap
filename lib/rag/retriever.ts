@@ -1,6 +1,12 @@
 /**
- * pgvector Semantic Vector RAG Retriever Module
- * Queries anthropological field logs and vectors using cosine similarity search.
+ * Field-log RAG Retriever Module.
+ *
+ * NOTE: no live embedding model / pgvector instance is wired in this demo, so
+ * retrieval uses a lexical relevance score (query-term overlap against the
+ * document title + summary + metadata) rather than true vector cosine
+ * similarity. Crucially, the `query` now actually drives the ranking — it was
+ * previously ignored, with hardcoded similarity scores returned regardless of
+ * the query. Swap `scoreRelevance` for a real embedding lookup to upgrade.
  */
 
 export interface RAGSearchOptions {
@@ -51,16 +57,54 @@ const MOCK_VECTOR_STORE: RAGSearchResult[] = [
   },
 ];
 
+const STOPWORDS = new Set([
+  'the', 'and', 'for', 'are', 'with', 'from', 'that', 'this', 'what', 'which',
+  'was', 'were', 'has', 'have', 'into', 'about', 'over', 'under', 'their',
+]);
+
+function tokenize(text: string): string[] {
+  return (text || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2 && !STOPWORDS.has(t));
+}
+
+/**
+ * Lexical relevance in [0,1]: fraction of the query's distinct terms that appear
+ * in the document's searchable text. Stands in for embedding cosine similarity.
+ */
+function scoreRelevance(queryTerms: string[], doc: RAGSearchResult): number {
+  if (queryTerms.length === 0) return 0;
+  const haystack = new Set(
+    tokenize(`${doc.title} ${doc.contentSummary} ${Object.values(doc.metadata).join(' ')}`)
+  );
+  const hits = queryTerms.filter((t) => haystack.has(t)).length;
+  return Number((hits / queryTerms.length).toFixed(2));
+}
+
 export async function retrieveFieldLogEmbeddings(options: RAGSearchOptions): Promise<RAGSearchResult[]> {
   const limit = options.limit || 5;
-  const threshold = options.matchThreshold || 0.6;
 
-  let filtered = MOCK_VECTOR_STORE;
+  let candidates = MOCK_VECTOR_STORE;
   if (options.district) {
-    filtered = filtered.filter((doc) => doc.metadata.district?.toLowerCase() === options.district?.toLowerCase());
+    candidates = candidates.filter(
+      (doc) => doc.metadata.district?.toLowerCase() === options.district?.toLowerCase()
+    );
   }
 
-  return filtered
-    .filter((doc) => doc.similarity >= threshold)
-    .slice(0, limit);
+  const queryTerms = Array.from(new Set(tokenize(options.query)));
+
+  // No usable query terms → return the (district-filtered) candidate set as-is.
+  if (queryTerms.length === 0) {
+    return candidates.slice(0, limit);
+  }
+
+  const scored = candidates
+    .map((doc) => ({ ...doc, similarity: scoreRelevance(queryTerms, doc) }))
+    .sort((a, b) => b.similarity - a.similarity);
+
+  // Prefer documents that actually match the query; if nothing matches, fall
+  // back to the district-filtered set so the agent still has context to reason over.
+  const matched = scored.filter((doc) => doc.similarity > 0);
+  return (matched.length > 0 ? matched : scored).slice(0, limit);
 }

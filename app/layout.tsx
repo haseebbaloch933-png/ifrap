@@ -67,7 +67,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col selection:bg-blue-200 selection:text-blue-900">
+      <body className="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-500/30 selection:text-emerald-50">
         <AuthProvider>
           <AccessibilityProvider>
             <I18nProvider>
@@ -84,17 +84,17 @@ export default function RootLayout({
                 <PwaRegister />
   
                 {/* Global Institutional Footer */}
-                <footer role="contentinfo" className="border-t border-slate-200 bg-white py-8 mt-auto">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <footer role="contentinfo" className="border-t border-slate-800 bg-slate-900 py-8 mt-auto">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
                     <div>
-                      <p className="font-semibold text-slate-700">
+                      <p className="font-semibold text-slate-200">
                         Applied Anthropology Portfolio & M&E Telemetry
                       </p>
                       <p className="mt-1">
                         Integrating Indigenous Technical Knowledge (ITK) & Senian Capability Deprivation Index for IFRAP Component 3.
                       </p>
                     </div>
-                    <div className="flex items-center gap-4 text-slate-500">
+                    <div className="flex items-center gap-4 text-slate-400">
                       <span>Balochistan Karez Systems</span>
                       <span>•</span>
                       <span>Usufruct Digital Ledger</span>

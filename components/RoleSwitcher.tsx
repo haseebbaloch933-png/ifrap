@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n-context';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
 export function RoleSwitcher() {
-  const { role, setRole } = useRBAC();
+  const { role } = useRBAC();
   const { t } = useI18n();
   const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);

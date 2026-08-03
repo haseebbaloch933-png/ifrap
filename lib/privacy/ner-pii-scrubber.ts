@@ -20,6 +20,11 @@ const PHONE_REGEX = /(\+92|0)?3\d{2}[-\s]?\d{7}|\b0\d{2,4}[-\s]?\d{6,8}\b/g;
 const NAME_TITLES_REGEX = /\b(Malik|Khan|Bibi|Syed|Sardar|Mir|Jam|Rind|Bugti|Marri|Mengal|Raisani|Zehri|Zarakzai|Son of|W\/O|D\/O|S\/O|Mr\.|Mrs\.|Ms\.|Dr\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/gi;
 const SPECIFIC_NAME_LABELS_REGEX = /(?:respondent_name|beneficiary|full_name|person_name|contact_person|name)\s*[:=]\s*([A-Za-z\s]{2,40})/gi;
 
+// Object keys that unambiguously hold a person's name — the whole value is PII
+// and must be redacted outright. Deliberately excludes bare/ambiguous "name"
+// keys (districtName, siteName, indicator name) so place/label names survive.
+const PERSON_NAME_KEY = /(full_?name|person_?name|respondent_?name|contact_?person|beneficiary_?name|applicant_?name|complainant_?name|owner_?name|guardian_?name|father_?name|next_of_kin)/;
+
 /**
  * Computes a lightweight deterministic hash for CNICs to retain matching capability without exposing 13-digit raw identity.
  */
@@ -119,6 +124,24 @@ export function fuzzGeoString(geoStr: string): string {
 }
 
 /**
+ * Recursively fuzzes GeoJSON `coordinates` arrays — Point [lon,lat],
+ * LineString/MultiPoint [[lon,lat],...], Polygon/MultiLineString and
+ * MultiPolygon (deeper nesting) — by rounding each position's lon/lat to 2
+ * decimal places (~1.1km grid). Elevation (3rd element) is preserved.
+ * scrubPayload previously only fuzzed scalar lat/lon object props, so any PII
+ * serialized as GeoJSON kept full-precision coordinates.
+ */
+export function fuzzGeoJSONCoordinates(coords: any): any {
+  if (!Array.isArray(coords)) return coords;
+  // A GeoJSON position is an array whose elements are numbers: [lon, lat, alt?].
+  if (typeof coords[0] === 'number') {
+    return coords.map((n, i) => (i < 2 && typeof n === 'number' ? Math.round(n * 100) / 100 : n));
+  }
+  // Otherwise it's an array of positions / rings — recurse.
+  return coords.map((c) => fuzzGeoJSONCoordinates(c));
+}
+
+/**
  * Comprehensive PII Scrubber function that recursively sanitizes any object or primitive.
  */
 export function scrubPayload<T>(payload: T): T {
@@ -145,52 +168,37 @@ export function scrubPayload<T>(payload: T): T {
   if (typeof payload === 'object') {
     const scrubbedObj: Record<string, any> = {};
 
-    // Specific object coordinate property fuzzing
     const rawObj = payload as Record<string, any>;
-    
-    // Check lat / lon properties directly
-    let hasLat = false;
-    let hasLon = false;
-    let latVal = 0;
-    let lonVal = 0;
 
-    for (const key of Object.keys(rawObj)) {
-      const lowerKey = key.toLowerCase();
-      const val = rawObj[key];
-
-      if ((lowerKey === 'lat' || lowerKey === 'latitude') && typeof val === 'number') {
-        hasLat = true;
-        latVal = val;
-      } else if ((lowerKey === 'lon' || lowerKey === 'lng' || lowerKey === 'longitude') && typeof val === 'number') {
-        hasLon = true;
-        lonVal = val;
-      }
-    }
-
-    if (hasLat && hasLon) {
-      const f = fuzzCoordinates(latVal, lonVal);
-      for (const key of Object.keys(rawObj)) {
-        const lowerKey = key.toLowerCase();
-        if (lowerKey === 'lat' || lowerKey === 'latitude') {
-          scrubbedObj[key] = f.lat;
-        } else if (lowerKey === 'lon' || lowerKey === 'lng' || lowerKey === 'longitude') {
-          scrubbedObj[key] = f.lon;
-        } else {
-          scrubbedObj[key] = scrubPayload(rawObj[key]);
-        }
-      }
-      return scrubbedObj as T;
-    }
-
-    // Process all keys
+    // Process every key with one unified, key-aware ruleset. Coordinate fuzzing
+    // is handled inline here. (Previously a separate `hasLat && hasLon`
+    // early-return path applied only value-level scrubbing to the other keys,
+    // so any object carrying lat/lon — e.g. every field-log payload — bypassed
+    // the person-name/CNIC/contact redaction below.)
     for (const [key, val] of Object.entries(rawObj)) {
       const lowerKey = key.toLowerCase();
-      
-      // Known PII fields
-      if (lowerKey.includes('cnic') && typeof val === 'string') {
+
+      // Fuzz GPS coordinates to ~2 decimal places (~1.1km grid protection).
+      if ((lowerKey === 'lat' || lowerKey === 'latitude') && typeof val === 'number') {
+        scrubbedObj[key] = Math.round(val * 100) / 100;
+      } else if ((lowerKey === 'lon' || lowerKey === 'lng' || lowerKey === 'longitude') && typeof val === 'number') {
+        scrubbedObj[key] = Math.round(val * 100) / 100;
+      } else if (lowerKey === 'coordinates' && Array.isArray(val)) {
+        scrubbedObj[key] = fuzzGeoJSONCoordinates(val);
+      } else if (lowerKey.includes('cnic') && typeof val === 'string') {
         scrubbedObj[key] = redactCNIC(val);
-      } else if ((lowerKey.includes('name') || lowerKey.includes('beneficiary') || lowerKey.includes('respondent')) && typeof val === 'string') {
-        scrubbedObj[key] = hashCnic(val).startsWith('CNIC_HASH_') ? val : redactNames(val);
+      } else if ((lowerKey.includes('beneficiary') || lowerKey.includes('respondent')) && typeof val === 'string') {
+        // Fields that always denote a person → redact the entire value.
+        // (Previously this branch had `hashCnic(val).startsWith('CNIC_HASH_') ? val : ...`
+        // which is ALWAYS true, so the raw name was returned unredacted — a PII leak.)
+        scrubbedObj[key] = val.trim() ? '[REDACTED_PERSON]' : val;
+      } else if (lowerKey.includes('name') && typeof val === 'string') {
+        // "name" is ambiguous. Redact declared person-name keys entirely, but for
+        // place/label names (districtName, siteName, indicator name) only strip
+        // embedded honorific/labeled person names so the place label survives.
+        scrubbedObj[key] = PERSON_NAME_KEY.test(lowerKey)
+          ? (val.trim() ? '[REDACTED_PERSON]' : val)
+          : redactNames(val);
       } else if ((lowerKey === 'geopoint' || lowerKey === 'geotrace' || lowerKey === 'geoshape') && typeof val === 'string') {
         scrubbedObj[key] = fuzzGeoString(val);
       } else if ((lowerKey.includes('email') || lowerKey.includes('phone') || lowerKey.includes('contact')) && typeof val === 'string') {
@@ -207,6 +215,17 @@ export function scrubPayload<T>(payload: T): T {
 }
 
 /**
+ * Tests a pattern WITHOUT mutating shared regex state. The module-level PII
+ * regexes carry the /g flag (needed by .replace()), and calling .test() on a
+ * global regex advances its lastIndex — so reusing them here made getScrubAudit
+ * intermittently miss matches depending on prior calls. A fresh non-global
+ * clone is stateless, so detection is deterministic.
+ */
+function patternPresent(re: RegExp, str: string): boolean {
+  return new RegExp(re.source, re.flags.replace('g', '')).test(str);
+}
+
+/**
  * Returns an audit assessment of PII detection & scrubbing on a payload.
  */
 export function getScrubAudit(payload: Record<string, any>): PiiScrubAuditResult {
@@ -215,19 +234,19 @@ export function getScrubAudit(payload: Record<string, any>): PiiScrubAuditResult
 
   const jsonStr = JSON.stringify(payload);
 
-  if (CNIC_REGEX.test(jsonStr)) {
+  if (patternPresent(CNIC_REGEX, jsonStr)) {
     scrubbedFields.push('CNIC_NUMBER');
     redactedCount++;
   }
-  if (EMAIL_REGEX.test(jsonStr)) {
+  if (patternPresent(EMAIL_REGEX, jsonStr)) {
     scrubbedFields.push('EMAIL_ADDRESS');
     redactedCount++;
   }
-  if (PHONE_REGEX.test(jsonStr)) {
+  if (patternPresent(PHONE_REGEX, jsonStr)) {
     scrubbedFields.push('TELEPHONE_NUMBER');
     redactedCount++;
   }
-  if (NAME_TITLES_REGEX.test(jsonStr) || SPECIFIC_NAME_LABELS_REGEX.test(jsonStr)) {
+  if (patternPresent(NAME_TITLES_REGEX, jsonStr) || patternPresent(SPECIFIC_NAME_LABELS_REGEX, jsonStr)) {
     scrubbedFields.push('PERSON_NAME');
     redactedCount++;
   }
