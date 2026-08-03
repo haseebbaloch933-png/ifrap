@@ -72,9 +72,15 @@ Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
                     └── MapLibre GL JS (react-map-gl) over a CARTO basemap
 ```
 
-- **Auth / RBAC** — NextAuth (JWT). `middleware.ts` verifies the session with
-  `getToken` and enforces `PROTECTED_ROUTES` from `lib/auth/rbac.ts`. The two
-  must stay in sync; `tests/matcher-coverage.test.js` fails if they drift.
+- **Auth / RBAC** — NextAuth (JWT), SSO-ready. Set `OIDC_ISSUER` /
+  `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` to federate login to a real OpenID
+  Connect identity provider (the FPMU/GoP IdP); leave them unset for the demo
+  email/password login. In production, configuring SSO removes the demo
+  password provider entirely. Roles come from a configurable IdP claim
+  (default `role`), falling back to email-pattern mapping and ultimately the
+  least-privileged role. `middleware.ts` verifies the session with `getToken`
+  and enforces `PROTECTED_ROUTES` from `lib/auth/rbac.ts`; the two must stay in
+  sync (`tests/matcher-coverage.test.js` fails if they drift).
 - **Persistence** — `lib/server/store.ts` is a dispatcher behind a repository
   seam (`getAll/insert/update/transaction`). It selects the backend by env:
   - `DATABASE_URL` **unset** → file store (`lib/server/file-store.ts`) under the
@@ -132,8 +138,11 @@ Before this platform can process **real** IFRAP data, the following must close.
 These are scoping items, not bugs:
 
 **Blockers**
-- Replace mock auth (`lib/auth.ts`) with real SSO (SAML/OIDC to the FPMU/GoP
-  identity provider) + MFA + per-user account lifecycle.
+- ~~Replace mock auth with real SSO~~ **(wired)** — `lib/auth.ts` enables a
+  real OIDC provider when `OIDC_ISSUER`/`OIDC_CLIENT_ID`/`OIDC_CLIENT_SECRET`
+  are set, and drops the demo password provider in production. Remaining: point
+  it at the actual FPMU/GoP identity provider and confirm MFA + per-user
+  account lifecycle are enforced there (IdP-side, not app-side).
 - ~~Move off the single-instance file store onto Postgres~~ **(started)** — a
   Postgres adapter now sits behind the seam and turns on via `DATABASE_URL`
   (see [Pilot: Postgres migration](#pilot-postgres-migration)); the file store
