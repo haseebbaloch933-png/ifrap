@@ -13,10 +13,9 @@
  * Seeding is once-per-collection, tracked in `app_store_meta`, so deleting all
  * rows does not silently reseed.
  *
- * NOTE: this generic JSONB store is the pragmatic pilot step. Mapping these
- * collections onto the normalized LADM schema in backend/db/init_schema.sql
- * (la_party / la_rrr / qualitative_field_logs / ...) is the production-phase
- * follow-up; both can live in the same database.
+ * NOTE: this generic JSONB store is the pragmatic pilot step. A normalized
+ * domain schema (parties / rights / spatial units, if the team designs one)
+ * would be the production-phase follow-up and can live in the same database.
  *
  * Concurrency: every operation runs in a DB transaction that first takes a
  * per-collection advisory lock (pg_advisory_xact_lock), which serializes
@@ -44,7 +43,7 @@ let bootstrapped: Promise<void> | null = null;
 
 /**
  * Idempotently create the store tables. Runs once per process. Safe even if
- * backend/db/*.sql has not been applied — the pilot works against a bare DB.
+ * db/01_app_store.sql has not been applied — the pilot works against a bare DB.
  */
 function bootstrap(): Promise<void> {
   if (!bootstrapped) {

@@ -211,15 +211,13 @@ const tests = [
     }
   },
   {
-    name: 'TC-T4-10: Client & Server PII Anonymization, CNIC Hashing, and Coordinate Fuzzing Verification',
+    name: 'TC-T4-10: Client-Side PII Anonymization, CNIC Hashing, and Coordinate Fuzzing Verification',
     run: () => {
       const { assertFileExists, assertContains } = require('../utils/ast-helpers');
-      
+
       assertFileExists('lib/privacy/ner-pii-scrubber.ts');
       assertFileExists('lib/offline/crypto-storage.ts');
       assertFileExists('lib/offline/indexed-db.ts');
-      assertFileExists('backend/pii_scrubber.py');
-      assertFileExists('backend/worker.py');
 
       assertContains('lib/privacy/ner-pii-scrubber.ts', 'redactCNIC');
       assertContains('lib/privacy/ner-pii-scrubber.ts', 'redactNames');
@@ -232,14 +230,10 @@ const tests = [
 
       assertContains('lib/offline/indexed-db.ts', 'AntigravityOfflineDB');
       assertContains('lib/offline/indexed-db.ts', 'syncOfflineQueue');
-
-      assertContains('backend/pii_scrubber.py', 'def scrub_pii_payload');
-      assertContains('backend/pii_scrubber.py', 'def fuzz_coordinates');
-      assertContains('backend/worker.py', 'scrub_pii_payload');
     }
   },
   {
-    name: 'TC-T4-11: R1 Verification - Next.js 15 Middleware SAML/OIDC SSO RBAC Guard & PostGIS + pgvector Schema',
+    name: 'TC-T4-11: R1 Verification - Next.js Middleware Session Guard & Postgres Persistence Seam',
     run: () => {
       const { assertFileExists, assertContains } = require('../utils/ast-helpers');
       assertFileExists('middleware.ts');
@@ -251,16 +245,16 @@ const tests = [
       assertContains('lib/auth/rbac.ts', 'FIELD_ENUMERATOR');
       assertContains('lib/auth/rbac.ts', 'PROVINCIAL_PIU');
       assertContains('lib/auth/rbac.ts', 'FPMU_DIRECTOR');
-      assertFileExists('backend/db/init_schema.sql');
-      assertContains('backend/db/init_schema.sql', 'CREATE EXTENSION IF NOT EXISTS postgis;');
-      assertContains('backend/db/init_schema.sql', 'CREATE EXTENSION IF NOT EXISTS vector;');
-      assertContains('backend/db/init_schema.sql', 'qualitative_field_logs');
-      assertContains('backend/db/init_schema.sql', 'vector(1536)');
-      assertContains('backend/db/init_schema.sql', 'anthropological_field_vectors');
+      // Postgres pilot adapter behind the persistence seam (lib/server/store.ts
+      // dispatches to this when DATABASE_URL is set) — see db/01_app_store.sql.
+      assertFileExists('lib/server/pg-store.ts');
+      assertContains('lib/server/pg-store.ts', 'app_store');
+      assertContains('lib/server/pg-store.ts', 'pg_advisory_xact_lock');
+      assertFileExists('db/01_app_store.sql');
     }
   },
   {
-    name: 'TC-T4-12: R2 Verification - Offline PWA, Client-Side AES-256 IndexedDB Storage & NER PII Scrubber',
+    name: 'TC-T4-12: R2 Verification - Offline PWA & Client-Side AES-256 IndexedDB Storage',
     run: () => {
       const { assertFileExists, assertContains, assertExportExists } = require('../utils/ast-helpers');
       assertFileExists('public/sw.js');
@@ -268,7 +262,6 @@ const tests = [
       assertFileExists('lib/offline/crypto-storage.ts');
       assertFileExists('lib/offline/indexed-db.ts');
       assertFileExists('lib/privacy/ner-pii-scrubber.ts');
-      assertFileExists('backend/pii_scrubber.py');
 
       assertContains('lib/offline/crypto-storage.ts', 'AES-GCM');
       assertExportExists('lib/offline/crypto-storage.ts', 'encryptPayload');
@@ -281,9 +274,6 @@ const tests = [
       assertExportExists('lib/privacy/ner-pii-scrubber.ts', 'redactNames');
       assertExportExists('lib/privacy/ner-pii-scrubber.ts', 'fuzzCoordinates');
       assertExportExists('lib/privacy/ner-pii-scrubber.ts', 'scrubPayload');
-
-      assertContains('backend/pii_scrubber.py', 'def scrub_pii_payload');
-      assertContains('backend/pii_scrubber.py', 'def fuzz_coordinates');
     }
   },
   {

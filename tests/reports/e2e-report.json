@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-08-03T12:34:09.801Z",
-  "durationMs": 28937,
+  "timestamp": "2026-08-03T19:11:28.071Z",
+  "durationMs": 38666,
   "summary": {
     "total": 98,
     "passed": 98,
@@ -21,28 +21,28 @@
           "name": "TC-T1-F1-01: Root Layout Structure Verification",
           "status": "PASSED",
           "error": null,
-          "durationMs": 2
+          "durationMs": 6
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F1-02: Home Page Component Verification",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 2
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F1-03: GlassCard Component Structure",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 2
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F1-04: Tailwind Glassmorphic Utilities Check",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 4
         },
         {
           "tier": "tier1",
@@ -56,7 +56,7 @@
           "name": "TC-T1-F2-01: DecolonialMap Component Existence",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
@@ -70,28 +70,28 @@
           "name": "TC-T1-F2-03: Balochistan Route Coordinates Data Module",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 3
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F2-04: Decolonial ITK Layer Toggle State Definition",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 0
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F2-05: Map Center and Zoom Options Contract",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F3-01: Senian MPI Engine Calculation Formula",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
@@ -105,14 +105,14 @@
           "name": "TC-T1-F3-03: Telemetry Dashboard Component Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 2
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F3-04: Telemetry Page Route Definition",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
@@ -126,7 +126,7 @@
           "name": "TC-T1-F4-01: UsufructGenerator Component Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 2
         },
         {
           "tier": "tier1",
@@ -140,7 +140,7 @@
           "name": "TC-T1-F4-03: Digital Ledger UI Structure",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
@@ -168,7 +168,7 @@
           "name": "TC-T1-F5-02: JSON-LD Schema Script Structure",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 0
         },
         {
           "tier": "tier1",
@@ -196,7 +196,7 @@
           "name": "TC-T1-F6-01: Telemetry CSV Export API Route Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
@@ -231,14 +231,14 @@
           "name": "TC-T1-F7-01: RBAC Context Module Existence & Exports",
           "status": "PASSED",
           "error": null,
-          "durationMs": 2
+          "durationMs": 3
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F7-02: RoleGate Component Specification & Exports",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier1",
@@ -252,21 +252,21 @@
           "name": "TC-T1-F8-01: i18n Context Module & Translation Dictionaries Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 2
+          "durationMs": 4
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F8-02: Accessibility Context Module & High Contrast Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 2
         },
         {
           "tier": "tier1",
           "name": "TC-T1-F8-03: Language & Accessibility Switcher Components Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 3
         },
         {
           "tier": "tier1",
@@ -280,7 +280,7 @@
           "name": "TC-T1-F8-05: Skip-to-Content Link & ARIA Attributes Spec",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         }
       ]
     },
@@ -351,7 +351,7 @@
           "name": "TC-T2-F2-04: Map Zoom Level Boundaries (Zoom 0 and Max Zoom 24)",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier2",
@@ -428,7 +428,7 @@
           "name": "TC-T2-F4-05: Disconnected Firebase Network Simulation State",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 0
         },
         {
           "tier": "tier2",
@@ -463,7 +463,7 @@
           "name": "TC-T2-F5-05: Missing Optional OpenGraph Properties Fallback",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier2",
@@ -484,14 +484,14 @@
           "name": "TC-T2-F6-03: Missing Authorization Header Boundary in Export API",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 2
         },
         {
           "tier": "tier2",
           "name": "TC-T2-F6-04: Large Record Payload Export Buffer Boundary",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier2",
@@ -520,14 +520,14 @@
           "name": "TC-T3-02: Usufruct Certificate Generation Sync with Spatial Map Feature",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         },
         {
           "tier": "tier3",
           "name": "TC-T3-03: Senian MPI Calculation Pipeline feeding CSV Data Exporter",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 0
         },
         {
           "tier": "tier3",
@@ -541,7 +541,7 @@
           "name": "TC-T3-05: Usufruct Digital Ledger State Sync with Simulated Firebase",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 9
         },
         {
           "tier": "tier3",
@@ -562,21 +562,21 @@
           "name": "TC-T3-08: Multi-Filter Telemetry + WebGIS Layer + Export Data Pipeline",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 0
         },
         {
           "tier": "tier3",
           "name": "TC-T3-09: Real-time M&E Analytics Widgets Module & Component Structure",
           "status": "PASSED",
           "error": null,
-          "durationMs": 2
+          "durationMs": 5
         },
         {
           "tier": "tier3",
           "name": "TC-T3-10: M&E Analytics API Export Route & Fallback Integration",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         }
       ]
     },
@@ -633,7 +633,7 @@
           "name": "TC-T4-07: Role-Based Access Control (RBAC) Permission Matrix & RoleGate Verification",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 0
         },
         {
           "tier": "tier4",
@@ -647,42 +647,42 @@
           "name": "TC-T4-09: PWA Service Worker, Manifest, and PwaRegister Component Verification",
           "status": "PASSED",
           "error": null,
-          "durationMs": 2
+          "durationMs": 6
         },
         {
           "tier": "tier4",
-          "name": "TC-T4-10: Client & Server PII Anonymization, CNIC Hashing, and Coordinate Fuzzing Verification",
+          "name": "TC-T4-10: Client-Side PII Anonymization, CNIC Hashing, and Coordinate Fuzzing Verification",
           "status": "PASSED",
           "error": null,
-          "durationMs": 1
+          "durationMs": 4
         },
         {
           "tier": "tier4",
-          "name": "TC-T4-11: R1 Verification - Next.js 15 Middleware SAML/OIDC SSO RBAC Guard & PostGIS + pgvector Schema",
+          "name": "TC-T4-11: R1 Verification - Next.js Middleware Session Guard & Postgres Persistence Seam",
           "status": "PASSED",
           "error": null,
-          "durationMs": 7
+          "durationMs": 4
         },
         {
           "tier": "tier4",
-          "name": "TC-T4-12: R2 Verification - Offline PWA, Client-Side AES-256 IndexedDB Storage & NER PII Scrubber",
+          "name": "TC-T4-12: R2 Verification - Offline PWA & Client-Side AES-256 IndexedDB Storage",
           "status": "PASSED",
           "error": null,
-          "durationMs": 3
+          "durationMs": 6
         },
         {
           "tier": "tier4",
           "name": "TC-T4-13: R3 Verification - LangGraph Antigravity Agent Orchestration & pgvector Semantic RAG",
           "status": "PASSED",
           "error": null,
-          "durationMs": 2
+          "durationMs": 5
         },
         {
           "tier": "tier4",
           "name": "TC-T4-14: R4 Verification - 5 ESF Safeguard Modules Route & Metadata Contract",
           "status": "PASSED",
           "error": null,
-          "durationMs": 3
+          "durationMs": 6
         }
       ]
     },
@@ -732,7 +732,7 @@
           "name": "TC-T5-06: Rate Limiting & Denial-of-Service Resilience on Export Endpoint",
           "status": "PASSED",
           "error": null,
-          "durationMs": 0
+          "durationMs": 1
         }
       ]
     }
@@ -743,28 +743,28 @@
       "name": "TC-T1-F1-01: Root Layout Structure Verification",
       "status": "PASSED",
       "error": null,
-      "durationMs": 2
+      "durationMs": 6
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F1-02: Home Page Component Verification",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F1-03: GlassCard Component Structure",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F1-04: Tailwind Glassmorphic Utilities Check",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 4
     },
     {
       "tier": "tier1",
@@ -778,7 +778,7 @@
       "name": "TC-T1-F2-01: DecolonialMap Component Existence",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
@@ -792,28 +792,28 @@
       "name": "TC-T1-F2-03: Balochistan Route Coordinates Data Module",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 3
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F2-04: Decolonial ITK Layer Toggle State Definition",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F2-05: Map Center and Zoom Options Contract",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F3-01: Senian MPI Engine Calculation Formula",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
@@ -827,14 +827,14 @@
       "name": "TC-T1-F3-03: Telemetry Dashboard Component Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F3-04: Telemetry Page Route Definition",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
@@ -848,7 +848,7 @@
       "name": "TC-T1-F4-01: UsufructGenerator Component Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "tier1",
@@ -862,7 +862,7 @@
       "name": "TC-T1-F4-03: Digital Ledger UI Structure",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
@@ -890,7 +890,7 @@
       "name": "TC-T1-F5-02: JSON-LD Schema Script Structure",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "tier1",
@@ -918,7 +918,7 @@
       "name": "TC-T1-F6-01: Telemetry CSV Export API Route Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
@@ -953,14 +953,14 @@
       "name": "TC-T1-F7-01: RBAC Context Module Existence & Exports",
       "status": "PASSED",
       "error": null,
-      "durationMs": 2
+      "durationMs": 3
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F7-02: RoleGate Component Specification & Exports",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier1",
@@ -974,21 +974,21 @@
       "name": "TC-T1-F8-01: i18n Context Module & Translation Dictionaries Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 2
+      "durationMs": 4
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F8-02: Accessibility Context Module & High Contrast Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "tier1",
       "name": "TC-T1-F8-03: Language & Accessibility Switcher Components Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 3
     },
     {
       "tier": "tier1",
@@ -1002,7 +1002,7 @@
       "name": "TC-T1-F8-05: Skip-to-Content Link & ARIA Attributes Spec",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier2",
@@ -1065,7 +1065,7 @@
       "name": "TC-T2-F2-04: Map Zoom Level Boundaries (Zoom 0 and Max Zoom 24)",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier2",
@@ -1142,7 +1142,7 @@
       "name": "TC-T2-F4-05: Disconnected Firebase Network Simulation State",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "tier2",
@@ -1177,7 +1177,7 @@
       "name": "TC-T2-F5-05: Missing Optional OpenGraph Properties Fallback",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier2",
@@ -1198,14 +1198,14 @@
       "name": "TC-T2-F6-03: Missing Authorization Header Boundary in Export API",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "tier2",
       "name": "TC-T2-F6-04: Large Record Payload Export Buffer Boundary",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier2",
@@ -1226,14 +1226,14 @@
       "name": "TC-T3-02: Usufruct Certificate Generation Sync with Spatial Map Feature",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier3",
       "name": "TC-T3-03: Senian MPI Calculation Pipeline feeding CSV Data Exporter",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "tier3",
@@ -1247,7 +1247,7 @@
       "name": "TC-T3-05: Usufruct Digital Ledger State Sync with Simulated Firebase",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 9
     },
     {
       "tier": "tier3",
@@ -1268,21 +1268,21 @@
       "name": "TC-T3-08: Multi-Filter Telemetry + WebGIS Layer + Export Data Pipeline",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "tier3",
       "name": "TC-T3-09: Real-time M&E Analytics Widgets Module & Component Structure",
       "status": "PASSED",
       "error": null,
-      "durationMs": 2
+      "durationMs": 5
     },
     {
       "tier": "tier3",
       "name": "TC-T3-10: M&E Analytics API Export Route & Fallback Integration",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "tier4",
@@ -1331,7 +1331,7 @@
       "name": "TC-T4-07: Role-Based Access Control (RBAC) Permission Matrix & RoleGate Verification",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "tier4",
@@ -1345,42 +1345,42 @@
       "name": "TC-T4-09: PWA Service Worker, Manifest, and PwaRegister Component Verification",
       "status": "PASSED",
       "error": null,
-      "durationMs": 2
+      "durationMs": 6
     },
     {
       "tier": "tier4",
-      "name": "TC-T4-10: Client & Server PII Anonymization, CNIC Hashing, and Coordinate Fuzzing Verification",
+      "name": "TC-T4-10: Client-Side PII Anonymization, CNIC Hashing, and Coordinate Fuzzing Verification",
       "status": "PASSED",
       "error": null,
-      "durationMs": 1
+      "durationMs": 4
     },
     {
       "tier": "tier4",
-      "name": "TC-T4-11: R1 Verification - Next.js 15 Middleware SAML/OIDC SSO RBAC Guard & PostGIS + pgvector Schema",
+      "name": "TC-T4-11: R1 Verification - Next.js Middleware Session Guard & Postgres Persistence Seam",
       "status": "PASSED",
       "error": null,
-      "durationMs": 7
+      "durationMs": 4
     },
     {
       "tier": "tier4",
-      "name": "TC-T4-12: R2 Verification - Offline PWA, Client-Side AES-256 IndexedDB Storage & NER PII Scrubber",
+      "name": "TC-T4-12: R2 Verification - Offline PWA & Client-Side AES-256 IndexedDB Storage",
       "status": "PASSED",
       "error": null,
-      "durationMs": 3
+      "durationMs": 6
     },
     {
       "tier": "tier4",
       "name": "TC-T4-13: R3 Verification - LangGraph Antigravity Agent Orchestration & pgvector Semantic RAG",
       "status": "PASSED",
       "error": null,
-      "durationMs": 2
+      "durationMs": 5
     },
     {
       "tier": "tier4",
       "name": "TC-T4-14: R4 Verification - 5 ESF Safeguard Modules Route & Metadata Contract",
       "status": "PASSED",
       "error": null,
-      "durationMs": 3
+      "durationMs": 6
     },
     {
       "tier": "tier5",
@@ -1422,7 +1422,7 @@
       "name": "TC-T5-06: Rate Limiting & Denial-of-Service Resilience on Export Endpoint",
       "status": "PASSED",
       "error": null,
-      "durationMs": 0
+      "durationMs": 1
     }
   ]
 }
