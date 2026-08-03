@@ -320,7 +320,12 @@ const tests = [
     run: () => {
       assertFileExists('components/RoleSwitcher.tsx');
       assertExportExists('components/RoleSwitcher.tsx', 'RoleSwitcher');
-      assertContains('components/RoleSwitcher.tsx', 'setRole');
+      // The role badge reflects the real authenticated session (useRBAC + NextAuth),
+      // not a client-side override — a manual `setRole` escape hatch was
+      // deliberately removed as dead demo code. Guard the current, correct contract.
+      assertContains('components/RoleSwitcher.tsx', 'useRBAC');
+      assertContains('components/RoleSwitcher.tsx', 'useSession');
+      assertContains('components/RoleSwitcher.tsx', 'signOut');
     }
   },
 
