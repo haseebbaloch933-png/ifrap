@@ -18,6 +18,40 @@ import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 
+// Guard, checked once on the first real write: the lock below only
+// coordinates writes within a single Node process. Run this store from more
+// than one instance (the normal case for uptime) and two instances can each
+// read-modify-write the same collection with no cross-instance coordination —
+// the later rename silently overwrites the earlier insert, with no error
+// anywhere (a GRM ticket or usufruct certificate one officer filed can simply
+// vanish). Refuse to write in production unless a database is configured or
+// the risk is explicitly acknowledged, rather than let that happen silently.
+//
+// Deliberately NOT a module-top-level check: Next.js evaluates route modules
+// (to inspect their config) during `next build`'s page-data-collection step
+// without ever invoking them, so a check that runs at import time fires
+// during every production build regardless of whether the route is ever
+// called. Gating the actual write call means it only fires when a real
+// request tries to persist something against a real running server.
+let guardChecked = false;
+function assertMultiInstanceSafe(): void {
+  if (guardChecked) return;
+  guardChecked = true;
+  if (
+    process.env.NODE_ENV === 'production' &&
+    !process.env.DATABASE_URL &&
+    process.env.ACKNOWLEDGE_SINGLE_INSTANCE_STORE !== 'true'
+  ) {
+    throw new Error(
+      'Refusing to write with the file-backed store in production: it is not safe ' +
+        'across more than one running instance and can silently lose data. Set ' +
+        'DATABASE_URL to use the Postgres adapter (see db/01_app_store.sql), or set ' +
+        'ACKNOWLEDGE_SINGLE_INSTANCE_STORE=true if this deployment is deliberately ' +
+        'and permanently single-instance.'
+    );
+  }
+}
+
 // Per-collection serialization: chain operations so reads/writes never interleave.
 const chains = new Map<string, Promise<unknown>>();
 
@@ -49,6 +83,7 @@ async function readRaw<T>(name: string, seed: T[]): Promise<T[]> {
 }
 
 async function writeRaw<T>(name: string, data: T[]): Promise<void> {
+  assertMultiInstanceSafe();
   await fs.mkdir(DATA_DIR, { recursive: true });
   const file = fileFor(name);
   const tmp = `${file}.${process.pid}.tmp`;

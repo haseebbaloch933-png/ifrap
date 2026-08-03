@@ -79,6 +79,10 @@ Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
   seam (`getAll/insert/update/transaction`). It selects the backend by env:
   - `DATABASE_URL` **unset** → file store (`lib/server/file-store.ts`) under the
     gitignored `.data/` dir (atomic writes, per-collection lock) — the dev default.
+    **Not safe across more than one running instance** — in production
+    without `DATABASE_URL`, the app refuses to write (throws on the first
+    attempted write) unless `ACKNOWLEDGE_SINGLE_INSTANCE_STORE=true` is
+    explicitly set.
   - `DATABASE_URL` **set** → Postgres adapter (`lib/server/pg-store.ts`):
     concurrency-safe (per-collection advisory locks), multi-instance — the pilot
     target. Switching is a pure env change; **no route/component code changes**.
@@ -132,12 +136,17 @@ These are scoping items, not bugs:
   identity provider) + MFA + per-user account lifecycle.
 - ~~Move off the single-instance file store onto Postgres~~ **(started)** — a
   Postgres adapter now sits behind the seam and turns on via `DATABASE_URL`
-  (see [Pilot: Postgres migration](#pilot-postgres-migration)). Remaining: run
-  it against the pilot DB, then design a normalized domain schema for
-  production if the generic JSONB store isn't sufficient long-term.
+  (see [Pilot: Postgres migration](#pilot-postgres-migration)); the file store
+  now also refuses to write unattended in a production deployment without a
+  database configured (`ACKNOWLEDGE_SINGLE_INSTANCE_STORE`). Remaining: run
+  the Postgres path against the pilot DB, then design a normalized domain schema
+  for production if the generic JSONB store isn't sufficient long-term.
 - Replace `docker-compose.yml` default credentials with managed secrets.
-- Self-host map tiles instead of the external CARTO CDN for data-locality,
-  and formalize the heuristic PII scrubber into a tested standard.
+- Self-host map tiles instead of the external CARTO CDN for data-locality.
+- ~~Formalize the heuristic PII scrubber into a tested standard~~ **(started)**
+  — regression-tested against realistic Balochistan-context inputs (see
+  `npm run verify:pii`); still not a trained NER model, and bare names with
+  no honorific are a documented, known gap.
 
 **Regulatory (require the FPMU's legal/security officers + an accredited assessor)**
 - **World Bank ESF/ESS10:** DPIA, data classification & retention policy,

@@ -94,7 +94,18 @@ const STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'ESCALATED'];
 
 /** Coerce arbitrary request input into a valid new ticket (server assigns id/timestamps). */
 export function buildNewTicket(input: any, existing: GrmTicketRecord[]): GrmTicketRecord {
-  const nextNum = existing.length + 1;
+  // Derive the next number from the highest existing ticket number rather
+  // than array length, so numbering stays correct even if the array is ever
+  // not a clean append-only sequence (e.g. a future delete). This runs inside
+  // the store's transaction() lock, so within one instance it's atomic; true
+  // cross-instance uniqueness still depends on either the Postgres adapter
+  // (real cross-instance lock) or the file-store's single-instance boot guard.
+  const maxNum = existing.reduce((max, t) => {
+    const match = /^GRM-\d{4}-(\d+)$/.exec(t.id);
+    const n = match ? parseInt(match[1], 10) : 0;
+    return n > max ? n : max;
+  }, 0);
+  const nextNum = maxNum + 1;
   const category = CATEGORIES.includes(input?.category) ? input.category : 'Water Allocation';
   const priority = PRIORITIES.includes(input?.priority) ? input.priority : 'MEDIUM';
   return {
