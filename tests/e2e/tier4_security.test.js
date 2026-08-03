@@ -244,7 +244,9 @@ const tests = [
       const { assertFileExists, assertContains } = require('../utils/ast-helpers');
       assertFileExists('middleware.ts');
       assertFileExists('lib/auth/rbac.ts');
-      assertContains('middleware.ts', 'verifyAndDecodeSAMLOrOIDCToken');
+      // Security fix (audit C1): edge gate verifies the session via getToken;
+      // the verifyAndDecodeSAMLOrOIDCToken bypass was removed. Guard the secure contract.
+      assertContains('middleware.ts', 'getToken');
       assertContains('middleware.ts', 'getRequiredRolesForPath');
       assertContains('lib/auth/rbac.ts', 'FIELD_ENUMERATOR');
       assertContains('lib/auth/rbac.ts', 'PROVINCIAL_PIU');
@@ -299,7 +301,8 @@ const tests = [
       assertExportExists('lib/rag/retriever.ts', 'retrieveFieldLogEmbeddings');
       assertContains('lib/rag/retriever.ts', 'vectorId');
 
-      assertContains('app/api/agent/route.ts', 'verifyAndDecodeSAMLOrOIDCToken');
+      // Security fix (audit C1): agent route verifies via getToken, not the removed bypass.
+      assertContains('app/api/agent/route.ts', 'getToken');
       assertContains('app/api/agent/route.ts', 'runAntigravityAgent');
     }
   },

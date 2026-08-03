@@ -56,7 +56,9 @@ const tests = [
       assert.ok(pkg.dependencies['next'], 'next missing');
       assert.ok(pkg.dependencies['react'], 'react missing');
       assert.ok(pkg.dependencies['tailwindcss'] || pkg.devDependencies['tailwindcss'], 'tailwindcss missing');
-      assert.ok(pkg.dependencies['mapbox-gl'], 'mapbox-gl missing');
+      // The WebGIS is built on MapLibre GL JS (open-source, self-hostable — the
+      // right call for a .gov.pk system) via react-map-gl, not Mapbox.
+      assert.ok(pkg.dependencies['maplibre-gl'], 'maplibre-gl missing');
       assert.ok(pkg.dependencies['framer-motion'], 'framer-motion missing');
     }
   },
@@ -74,13 +76,13 @@ const tests = [
     }
   },
   {
-    name: 'TC-T1-F2-02: Mapbox GL JS Library Import Specification',
+    name: 'TC-T1-F2-02: MapLibre GL JS Library Import Specification',
     run: () => {
       if (fileExists('components/DecolonialMap.tsx')) {
-        assertImports('components/DecolonialMap.tsx', 'mapbox-gl');
+        assertImports('components/DecolonialMap.tsx', 'maplibre-gl');
       } else {
         const pkg = JSON.parse(getFileContent('package.json'));
-        assert.ok(pkg.dependencies['mapbox-gl']);
+        assert.ok(pkg.dependencies['maplibre-gl']);
       }
     }
   },
