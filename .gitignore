@@ -30,3 +30,6 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# file-backed persistence store (lib/server/store.ts)
+.data/
