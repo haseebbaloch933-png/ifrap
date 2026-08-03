@@ -20,6 +20,8 @@ export const PROTECTED_ROUTES: Array<{ path: string; allowedRoles: Role[] }> = [
   { path: '/webgis', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/api/export', allowedRoles: ['PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/api/agent', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
+  { path: '/api/grm', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
+  { path: '/api/field-logs', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/admin', allowedRoles: ['FPMU_DIRECTOR', 'PROVINCIAL_PIU'] },
   { path: '/fiduciary', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
 ];

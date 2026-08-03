@@ -26,6 +26,8 @@ export const config = {
     '/fiduciary/:path*',
     '/api/export/:path*',
     '/api/agent/:path*',
+    '/api/grm/:path*',
+    '/api/field-logs/:path*',
   ],
 };
 

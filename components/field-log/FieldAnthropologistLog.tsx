@@ -132,7 +132,7 @@ export function FieldAnthropologistLog() {
   const handleSaveOffline = async () => {
     try {
       setSaveStatus('Saving to IndexedDB with AES-256 encryption...');
-      const draftId = await offlineDB.saveEncryptedDraft('FIELD_LOG', formData, '/api/telemetry');
+      const draftId = await offlineDB.saveEncryptedDraft('FIELD_LOG', formData, '/api/field-logs');
       setSaveStatus(`Successfully saved offline draft (${draftId}).`);
       await loadPendingDrafts();
       setTimeout(() => setSaveStatus(null), 4000);

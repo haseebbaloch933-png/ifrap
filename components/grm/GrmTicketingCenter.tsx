@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
 import {
@@ -133,6 +133,23 @@ export function GrmTicketingCenter() {
   const [statusMutation, setStatusMutation] = useState<GrmTicket['status']>('IN_PROGRESS');
   const [resolutionNotesInput, setResolutionNotesInput] = useState<string>('');
 
+  // Load persisted tickets from the server on mount (seeded from the same data).
+  // Falls back to the local mock set if the API is unavailable (offline).
+  useEffect(() => {
+    let active = true;
+    fetch('/api/grm')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active && d && Array.isArray(d.tickets)) setTickets(d.tickets as GrmTicket[]);
+      })
+      .catch(() => {
+        /* keep local mock tickets when offline */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Fixed SLA Compliance calculation (75.0% baseline requirement with dynamic backup)
   const resolvedTickets = tickets.filter(t => t.status === 'RESOLVED');
   const compliantCount = resolvedTickets.filter(t => t.slaCompliant).length;
@@ -152,25 +169,7 @@ export function GrmTicketingCenter() {
     return matchesStatus && matchesCategory && matchesSearch;
   });
 
-  const handleCreateTicket = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTicketForm.description.trim()) return;
-
-    const newId = `GRM-2026-${String(tickets.length + 1).padStart(3, '0')}`;
-    const createdTicket: GrmTicket = {
-      id: newId,
-      district: newTicketForm.district,
-      category: newTicketForm.category,
-      status: 'OPEN',
-      priority: newTicketForm.priority,
-      submittedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      submitterName: newTicketForm.submitterName || 'Anonymous Submitter',
-      description: newTicketForm.description,
-      slaCompliant: true,
-      hoursRemaining: 72,
-    };
-
-    setTickets([createdTicket, ...tickets]);
+  const resetCreateForm = () => {
     setIsCreateModalOpen(false);
     setNewTicketForm({
       district: 'Mastung',
@@ -181,23 +180,80 @@ export function GrmTicketingCenter() {
     });
   };
 
-  const handleUpdateTicketStatus = (e: React.FormEvent) => {
+  const handleCreateTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTicketForm.description.trim()) return;
+
+    // Persist to the server (returns the canonical ticket with server-assigned id).
+    try {
+      const res = await fetch('/api/grm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTicketForm),
+      });
+      if (res.ok) {
+        const { ticket } = await res.json();
+        setTickets((prev) => [ticket as GrmTicket, ...prev]);
+        resetCreateForm();
+        return;
+      }
+    } catch {
+      /* fall through to local optimistic add when offline */
+    }
+
+    // Offline / API-failure fallback: keep the UI responsive with a local ticket.
+    const createdTicket: GrmTicket = {
+      id: `GRM-2026-${String(tickets.length + 1).padStart(3, '0')}`,
+      district: newTicketForm.district,
+      category: newTicketForm.category,
+      status: 'OPEN',
+      priority: newTicketForm.priority,
+      submittedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      submitterName: newTicketForm.submitterName || 'Anonymous Submitter',
+      description: newTicketForm.description,
+      slaCompliant: true,
+      hoursRemaining: 72,
+    };
+    setTickets((prev) => [createdTicket, ...prev]);
+    resetCreateForm();
+  };
+
+  const handleUpdateTicketStatus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTicket) return;
+    const ticketId = selectedTicket.id;
 
-    const updated = tickets.map((t) => {
-      if (t.id === selectedTicket.id) {
-        return {
-          ...t,
-          status: statusMutation,
-          resolvedAt: statusMutation === 'RESOLVED' ? new Date().toISOString().replace('T', ' ').slice(0, 16) : t.resolvedAt,
-          resolutionNotes: resolutionNotesInput || t.resolutionNotes,
-        };
+    const applyLocal = () => {
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === ticketId
+            ? {
+                ...t,
+                status: statusMutation,
+                resolvedAt: statusMutation === 'RESOLVED' ? new Date().toISOString().replace('T', ' ').slice(0, 16) : t.resolvedAt,
+                resolutionNotes: resolutionNotesInput || t.resolutionNotes,
+              }
+            : t
+        )
+      );
+    };
+
+    try {
+      const res = await fetch('/api/grm', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: ticketId, status: statusMutation, resolutionNotes: resolutionNotesInput }),
+      });
+      if (res.ok) {
+        const { ticket } = await res.json();
+        setTickets((prev) => prev.map((t) => (t.id === ticket.id ? (ticket as GrmTicket) : t)));
+      } else {
+        applyLocal();
       }
-      return t;
-    });
+    } catch {
+      applyLocal();
+    }
 
-    setTickets(updated);
     setSelectedTicket(null);
     setResolutionNotesInput('');
   };
