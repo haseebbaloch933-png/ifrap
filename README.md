@@ -75,10 +75,13 @@ Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
 - **Auth / RBAC** — NextAuth (JWT). `middleware.ts` verifies the session with
   `getToken` and enforces `PROTECTED_ROUTES` from `lib/auth/rbac.ts`. The two
   must stay in sync; `tests/matcher-coverage.test.js` fails if they drift.
-- **Persistence** — `lib/server/store.ts` is a file-backed JSON store under the
-  gitignored `.data/` directory (atomic writes, per-collection locking). It sits
-  behind a repository seam (`getAll/insert/update/transaction`) designed to be
-  swapped for Postgres/pgvector **without touching the API routes**.
+- **Persistence** — `lib/server/store.ts` is a dispatcher behind a repository
+  seam (`getAll/insert/update/transaction`). It selects the backend by env:
+  - `DATABASE_URL` **unset** → file store (`lib/server/file-store.ts`) under the
+    gitignored `.data/` dir (atomic writes, per-collection lock) — the dev default.
+  - `DATABASE_URL` **set** → Postgres adapter (`lib/server/pg-store.ts`):
+    concurrency-safe (per-collection advisory locks), multi-instance — the pilot
+    target. Switching is a pure env change; **no route/component code changes**.
 - **PII** — `lib/privacy/ner-pii-scrubber.ts` scrubs field-log payloads at rest
   and fuzzes GeoJSON coordinates. Offline drafts are AES-256 encrypted in
   IndexedDB and sync to `/api/field-logs` when back online.
@@ -129,8 +132,11 @@ These are scoping items, not bugs:
 **Blockers**
 - Replace mock auth (`lib/auth.ts`) with real SSO (SAML/OIDC to the FPMU/GoP
   identity provider) + MFA + per-user account lifecycle.
-- Move off the single-instance file store onto Postgres (seam is ready) and
-  wire the frontend to the backend, or consolidate on Next routes + Postgres.
+- ~~Move off the single-instance file store onto Postgres~~ **(started)** — a
+  Postgres adapter now sits behind the seam and turns on via `DATABASE_URL`
+  (see [Pilot: Postgres migration](#pilot-postgres-migration)). Remaining: run
+  it against the pilot DB, then map the generic JSONB store onto the normalized
+  LADM schema (`backend/db/init_schema.sql`) for production.
 - Replace `docker-compose.yml` default credentials with managed secrets.
 - Self-host map tiles (GeoServer) instead of the external CARTO CDN for
   data-locality, and formalize the heuristic PII scrubber into a tested standard.
@@ -144,6 +150,35 @@ These are scoping items, not bugs:
 
 ---
 
+## Pilot: Postgres migration
+
+The persistence seam supports Postgres today — the pilot step is to point it at
+a real database and verify.
+
+```bash
+# 1. Bring up the pilot database (PostGIS + pgvector) from the compose stack.
+docker compose up -d db-postgis
+
+# 2. Point the app at it (dev). The adapter self-creates its tables on first
+#    use; applying backend/db/02_app_store.sql is optional but recommended.
+export DATABASE_URL="postgres://postgres:postgres@localhost:5432/ifrap_production"
+
+# 3. Verify the adapter end-to-end (seed, insert/prepend, update, transaction).
+npm run verify:store        # prints PASS; SKIPs cleanly if DATABASE_URL is unset
+
+# 4. Run the app against Postgres.
+npm run dev
+```
+
+- The store keys records by `(collection, id)` in a generic JSONB table
+  (`app_store`) with seed-once tracking (`app_store_meta`); ordering matches the
+  file store (newest first).
+- With `DATABASE_URL` unset, everything falls back to the file store, so dev and
+  the test suite are unaffected.
+- **Follow-up (production):** map the JSONB collections onto the normalized LADM
+  tables in `backend/db/init_schema.sql` (`la_party`, `la_rrr`,
+  `qualitative_field_logs`, …). Both can coexist in the same database.
+
 ## Repository layout
 
 ```
@@ -151,7 +186,7 @@ app/                Next.js App Router pages + API routes
 components/          UI (dashboards, map, field log, GRM, usufruct, admin)
 lib/
   auth/             RBAC matrix + role helpers
-  server/store.ts   file-backed persistence (Postgres-swappable seam)
+  server/store.ts   persistence seam dispatcher (file-store | pg-store by DATABASE_URL)
   privacy/          PII scrubber
   agent/ · rag/     LangGraph agent + lexical retriever (template-based)
 middleware.ts       Edge RBAC gate (keep matcher in sync with rbac.ts)
