@@ -213,21 +213,22 @@ export class AntigravityOfflineDB {
   /**
    * Automatic re-sync routine: flushes pending queue when internet connection returns.
    */
-  public async syncOfflineQueue(): Promise<{ synced: number; failed: number }> {
+  public async syncOfflineQueue(): Promise<{ synced: number; failed: number; authFailure: boolean }> {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       console.log('[AntigravityOfflineDB] Device is offline. Skipping sync queue execution.');
-      return { synced: 0, failed: 0 };
+      return { synced: 0, failed: 0, authFailure: false };
     }
 
     const pendingDrafts = await this.getPendingDrafts();
     if (pendingDrafts.length === 0) {
-      return { synced: 0, failed: 0 };
+      return { synced: 0, failed: 0, authFailure: false };
     }
 
     console.log(`[AntigravityOfflineDB] Attempting auto-sync for ${pendingDrafts.length} pending draft(s)...`);
 
     let synced = 0;
     let failed = 0;
+    let authFailure = false;
 
     for (const draft of pendingDrafts) {
       try {
@@ -246,6 +247,7 @@ export class AntigravityOfflineDB {
           console.log(`[AntigravityOfflineDB] Successfully synced draft ${draft.id}`);
         } else {
           failed++;
+          if (response.status === 401) authFailure = true;
           console.warn(`[AntigravityOfflineDB] Sync server responded with HTTP ${response.status} for draft ${draft.id}`);
         }
       } catch (err: any) {
@@ -254,15 +256,19 @@ export class AntigravityOfflineDB {
       }
     }
 
-    if (synced > 0 && typeof window !== 'undefined') {
+    // Always dispatch — previously this only fired when synced > 0, so a run
+    // where EVERY draft failed (e.g. an expired session) told listeners
+    // nothing at all, and the UI fell back to a generic "queue synced"
+    // message. Callers must now check `failed`/`authFailure` on the result.
+    if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('offline-sync-complete', {
-          detail: { synced, failed, remaining: pendingDrafts.length - synced },
+          detail: { synced, failed, authFailure, remaining: pendingDrafts.length - synced },
         })
       );
     }
 
-    return { synced, failed };
+    return { synced, failed, authFailure };
   }
 }
 
@@ -272,6 +278,6 @@ export const offlineDB = new AntigravityOfflineDB();
 /**
  * Global helper routine for auto-syncing offline queue when connectivity returns.
  */
-export async function syncOfflineQueue(): Promise<{ synced: number; failed: number }> {
+export async function syncOfflineQueue(): Promise<{ synced: number; failed: number; authFailure: boolean }> {
   return offlineDB.syncOfflineQueue();
 }

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node tests/run-tests.js",
-    "verify:store": "node --experimental-strip-types scripts/verify-store.mjs"
+    "verify:store": "node --experimental-strip-types scripts/verify-store.mjs",
+    "verify:pii": "node --experimental-strip-types scripts/verify-pii-scrubber.mjs"
   },
   "dependencies": {
     "@langchain/langgraph": "^0.2.20",

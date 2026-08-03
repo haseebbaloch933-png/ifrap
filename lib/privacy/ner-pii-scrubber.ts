@@ -14,10 +14,19 @@ export interface PiiScrubAuditResult {
 // Regex Patterns
 const CNIC_REGEX = /\b\d{5}[-\s]?\d{7}[-\s]?\d\b/g;
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const PHONE_REGEX = /(\+92|0)?3\d{2}[-\s]?\d{7}|\b0\d{2,4}[-\s]?\d{6,8}\b/g;
+// Mobile numbers allow a separator at EACH digit-group boundary (0-333-445-6677
+// style 3-3-4 grouping), not just one — manual entry commonly spaces or
+// dashes every group ("0333 445 6677", "+92 300 123 4567"), which the
+// previous single-separator pattern missed while still catching the compact
+// form ("03001234567"). Landline pattern is unchanged.
+const PHONE_REGEX = /(?:\+92[-\s]?|0)3\d{2}[-\s]?\d{3}[-\s]?\d{4}\b|\b0\d{2,4}[-\s]?\d{6,8}\b/g;
 
 // Honorifics & regional naming prefixes common in Balochistan & Pakistan
 const NAME_TITLES_REGEX = /\b(Malik|Khan|Bibi|Syed|Sardar|Mir|Jam|Rind|Bugti|Marri|Mengal|Raisani|Zehri|Zarakzai|Son of|W\/O|D\/O|S\/O|Mr\.|Mrs\.|Ms\.|Dr\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/gi;
+// Same honorifics as a SUFFIX (e.g. "Nazneen Bibi") — Baloch usage often
+// places Bibi/Khan/Baig after the given name rather than before it, which the
+// prefix-only pattern above missed entirely.
+const NAME_SUFFIX_REGEX = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(Bibi|Khan|Baig)\b/g;
 const SPECIFIC_NAME_LABELS_REGEX = /(?:respondent_name|beneficiary|full_name|person_name|contact_person|name)\s*[:=]\s*([A-Za-z\s]{2,40})/gi;
 
 // Object keys that unambiguously hold a person's name — the whole value is PII
@@ -67,6 +76,16 @@ export function redactNames(text: string): string {
   // Replace title-based names (e.g. Malik Gul Khan -> [REDACTED_PERSON])
   scrubbed = scrubbed.replace(NAME_TITLES_REGEX, '[REDACTED_PERSON]');
 
+  // Replace suffix-honorific names (e.g. Nazneen Bibi -> [REDACTED_PERSON])
+  scrubbed = scrubbed.replace(NAME_SUFFIX_REGEX, '[REDACTED_PERSON]');
+
+  // KNOWN, DOCUMENTED GAP: a bare name with no honorific at all (e.g. "Nazeer
+  // Ahmed and his neighbor confirmed...") is NOT caught by this or any regex
+  // above. Reliably detecting person names in free prose needs a trained NER
+  // model — a name/place gazetteer or capitalized-word-pair regex would flag
+  // too many district/site/organization names as false positives to be safe
+  // to auto-redact. See scripts/verify-pii-scrubber.mjs for the exact
+  // regression cases this function does and does not currently catch.
   return scrubbed;
 }
 
@@ -246,7 +265,11 @@ export function getScrubAudit(payload: Record<string, any>): PiiScrubAuditResult
     scrubbedFields.push('TELEPHONE_NUMBER');
     redactedCount++;
   }
-  if (patternPresent(NAME_TITLES_REGEX, jsonStr) || patternPresent(SPECIFIC_NAME_LABELS_REGEX, jsonStr)) {
+  if (
+    patternPresent(NAME_TITLES_REGEX, jsonStr) ||
+    patternPresent(NAME_SUFFIX_REGEX, jsonStr) ||
+    patternPresent(SPECIFIC_NAME_LABELS_REGEX, jsonStr)
+  ) {
     scrubbedFields.push('PERSON_NAME');
     redactedCount++;
   }
