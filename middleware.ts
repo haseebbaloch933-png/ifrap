@@ -28,6 +28,7 @@ export const config = {
     '/api/agent/:path*',
     '/api/grm/:path*',
     '/api/field-logs/:path*',
+    '/api/fiduciary/:path*',
   ],
 };
 

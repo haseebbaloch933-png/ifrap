@@ -238,6 +238,16 @@ export function EsfTelemetryPortal() {
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStandard, setSelectedStandard] = useState<EssStandard | null>(null);
+  const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
+
+  // Reload the ESF snapshot dataset and stamp the time so the action is visible.
+  // (This is a bundled reference dataset — there is no live ESF backend to poll —
+  // so "refresh" honestly means re-loading that snapshot, not fetching new data.)
+  const handleRefresh = () => {
+    setStandards([...mockEssStandards]);
+    setAuditLogs([...mockAuditLogs]);
+    setRefreshedAt(new Date().toLocaleTimeString());
+  };
 
   // Derived metrics
   const avgComplianceScore = (
@@ -300,29 +310,31 @@ export function EsfTelemetryPortal() {
             <span className="px-2.5 py-1 text-xs font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded">
               WORLD BANK ESF PROTOCOL
             </span>
-            <span className="px-2.5 py-1 text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              TELEMETRY LIVE
+            <span className="px-2.5 py-1 text-xs font-mono font-bold bg-slate-500/20 text-slate-300 border border-slate-500/30 rounded flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              SNAPSHOT DATASET
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
             ESF Safeguard <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">Telemetry Portal</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            World Bank Environmental & Social Framework (ESS1-ESS10) Real-Time Compliance Matrix & Audit Logs
+            World Bank Environmental & Social Framework (ESS1-ESS10) Compliance Matrix & Audit Logs
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setStandards([...mockEssStandards]);
-            setAuditLogs([...mockAuditLogs]);
-          }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 rounded-xl transition-all shadow-md active:scale-95 self-start md:self-auto"
-        >
-          <RefreshCw className="w-4 h-4 text-cyan-400" />
-          <span>Refresh Telemetry</span>
-        </button>
+        <div className="flex flex-col items-start md:items-end gap-1 self-start md:self-auto">
+          <button
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium border border-slate-700 rounded-xl transition-all shadow-md active:scale-95"
+          >
+            <RefreshCw className="w-4 h-4 text-cyan-400" />
+            <span>Reload Snapshot</span>
+          </button>
+          {refreshedAt && (
+            <span className="text-[10px] text-slate-500 font-mono">Reloaded at {refreshedAt}</span>
+          )}
+        </div>
       </header>
 
       {/* Metric Cards Banner */}

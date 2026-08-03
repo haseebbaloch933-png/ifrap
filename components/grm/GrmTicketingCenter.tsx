@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
+import { GRM_SEED } from '@/lib/grm-data';
 import {
   LifeBuoy,
   Plus,
@@ -36,74 +37,13 @@ export interface GrmTicket {
   hoursRemaining: number;
 }
 
-const mockGrmTickets: GrmTicket[] = [
-  {
-    id: 'GRM-2026-001',
-    district: 'Quetta',
-    category: 'Water Allocation',
-    status: 'RESOLVED',
-    priority: 'HIGH',
-    submittedAt: '2026-07-28 09:30',
-    resolvedAt: '2026-07-29 14:15',
-    submitterName: 'Mir Jan Raisani',
-    description: 'Dispute over customary water share allocation at Karez XYZ following channel mainlining.',
-    resolutionNotes: 'Mirab Council convened; customary 12-hour turn restored.',
-    slaCompliant: true,
-    hoursRemaining: 0,
-  },
-  {
-    id: 'GRM-2026-002',
-    district: 'Mastung',
-    category: 'Infrastructure',
-    status: 'IN_PROGRESS',
-    priority: 'MEDIUM',
-    submittedAt: '2026-08-01 11:00',
-    submitterName: 'Anonymous Community Member',
-    description: 'Rehabilitation work causing temporary water blockage to downstream farmlands.',
-    resolutionNotes: 'Field engineer deployed temporary bypass pipe.',
-    slaCompliant: true,
-    hoursRemaining: 32,
-  },
-  {
-    id: 'GRM-2026-003',
-    district: 'Pishin',
-    category: 'Compensation',
-    status: 'ESCALATED',
-    priority: 'URGENT',
-    submittedAt: '2026-07-15 14:20',
-    submitterName: 'Sardar Gul Tarain',
-    description: 'Delayed payment for land usufruct rights temporary easement during flood wall construction.',
-    resolutionNotes: 'Escalated to World Bank ESS10 Fiduciary Oversight Lead.',
-    slaCompliant: false,
-    hoursRemaining: -120,
-  },
-  {
-    id: 'GRM-2026-004',
-    district: 'Ziarat',
-    category: 'Social Inclusion',
-    status: 'OPEN',
-    priority: 'MEDIUM',
-    submittedAt: '2026-08-02 08:10',
-    submitterName: 'Bibi Bakhtawar',
-    description: 'Minority clan representation excluded from local Mirab Water User Association council election.',
-    resolutionNotes: '',
-    slaCompliant: true,
-    hoursRemaining: 68,
-  },
-  {
-    id: 'GRM-2026-005',
-    district: 'Killa Abdullah',
-    category: 'Land Tenure',
-    status: 'OPEN',
-    priority: 'HIGH',
-    submittedAt: '2026-08-01 16:45',
-    submitterName: 'Malik Dost Muhammad',
-    description: 'Boundary overlapping claim between customary tribal lands and new retentive dam buffer.',
-    resolutionNotes: '',
-    slaCompliant: true,
-    hoursRemaining: 54,
-  },
-];
+// Single source of truth for the live GRM queue: the same seed the /api/grm
+// route persists from (lib/grm-data.ts). Used only as the offline fallback —
+// on mount the component replaces it with the server's persisted tickets.
+// (This previously duplicated GRM_SEED byte-for-byte, so the seed could drift
+// from the API's copy.) NOTE: this is the *active working queue*; the M&E
+// dashboard's MOCK_GRM_TICKETS is a separate program-to-date aggregate.
+const mockGrmTickets: GrmTicket[] = GRM_SEED;
 
 export function GrmTicketingCenter() {
   const animated = useAnimateIn(100);

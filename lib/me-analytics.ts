@@ -139,6 +139,10 @@ export const MOCK_COMPENSATION_BUDGET: CompensationBudgetBurnData = {
   },
 };
 
+// Program-to-date GRM *analytics aggregate* (184 tickets over the project life).
+// This is deliberately NOT the same dataset as the GRM Ticketing Center's live
+// working queue (lib/grm-data.ts GRM_SEED, a handful of currently-active
+// tickets). One is a rolled-up KPI surface; the other is the operational queue.
 export const MOCK_GRM_TICKETS: GRMTicketAnalyticsData = {
   totalTicketsCount: 184,
   pendingTicketsCount: 26,

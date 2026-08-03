@@ -22,7 +22,13 @@ export const PROTECTED_ROUTES: Array<{ path: string; allowedRoles: Role[] }> = [
   { path: '/api/agent', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/api/grm', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/api/field-logs', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
-  { path: '/admin', allowedRoles: ['FPMU_DIRECTOR', 'PROVINCIAL_PIU'] },
+  // Certificate issuance is elevated-only; must match both the /api/fiduciary
+  // server check and the UsufructGenerator RoleGate (PROVINCIAL_PIU/FPMU_DIRECTOR).
+  { path: '/api/fiduciary', allowedRoles: ['PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
+  // Admin dashboard is Director-only — this MUST match app/admin/page.tsx, which
+  // hard-redirects anyone whose role !== 'FPMU_DIRECTOR'. (Previously listed
+  // PROVINCIAL_PIU here, so a PIU passed the edge gate then got bounced by the page.)
+  { path: '/admin', allowedRoles: ['FPMU_DIRECTOR'] },
   { path: '/fiduciary', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
 ];
 

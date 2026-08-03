@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import Map, { Marker, NavigationControl, type MapRef } from 'react-map-gl/maplibre';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
 import {
@@ -132,11 +135,34 @@ export function GisImpactMapper() {
     RISK_HOTSPOT: true,
   });
 
-  // Base map style
-  const [mapStyle, setMapStyle] = useState<'SATELLITE' | 'TERRAIN' | 'DARK'>('DARK');
+  // Base map style — real CARTO basemaps (already allow-listed in the CSP).
+  const [mapStyle, setMapStyle] = useState<'DARK' | 'LIGHT' | 'STREETS'>('DARK');
+  const [mapError, setMapError] = useState(false);
+  const mapRef = useRef<MapRef | null>(null);
+
+  const BASEMAP_STYLES: Record<'DARK' | 'LIGHT' | 'STREETS', string> = {
+    DARK: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    LIGHT: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    STREETS: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  };
+
+  // Layer category → marker fill; mirrors the legend/badge colors.
+  const MARKER_COLOR: Record<SpatialFeature['layerCategory'], string> = {
+    FLOOD_EXTENT: '#22d3ee',
+    RIVER_BUFFER: '#3b82f6',
+    INFRASTRUCTURE: '#10b981',
+    LAND_TENURE: '#f59e0b',
+    RISK_HOTSPOT: '#f43f5e',
+  };
 
   const toggleLayer = (layerKey: keyof typeof layerVisibility) => {
     setLayerVisibility((prev) => ({ ...prev, [layerKey]: !prev[layerKey] }));
+  };
+
+  // Select a feature and ease the map to its coordinates.
+  const focusFeature = (feat: SpatialFeature) => {
+    setSelectedFeature(feat);
+    mapRef.current?.flyTo({ center: [feat.lng, feat.lat], zoom: 10, duration: 900 });
   };
 
   const filteredFeatures = features.filter((feat) => {
@@ -175,7 +201,7 @@ export function GisImpactMapper() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="px-2.5 py-1 text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded">
-              DECENUTRALIZED WEBGIS PIPELINE
+              DECENTRALIZED WEBGIS PIPELINE
             </span>
             <span className="px-2.5 py-1 text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded">
               SPATIAL IMPACT ENGINE
@@ -260,7 +286,7 @@ export function GisImpactMapper() {
           <div>
             <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Base Map Style</h3>
             <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-              {(['DARK', 'SATELLITE', 'TERRAIN'] as const).map((style) => (
+              {(['DARK', 'LIGHT', 'STREETS'] as const).map((style) => (
                 <button
                   key={style}
                   onClick={() => setMapStyle(style)}
@@ -306,74 +332,71 @@ export function GisImpactMapper() {
         <div className="lg:col-span-3 space-y-6">
           <GlassCard className="p-0 overflow-hidden relative border-cyan-500/30">
             
-            {/* Map Canvas Visualizer */}
-            <div className="w-full h-[480px] bg-slate-950 relative flex items-center justify-center overflow-hidden select-none">
-              
-              {/* Simulated Map Grid Lines & Topo Contours */}
-              <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
-              
-              {/* Map Title Overlay */}
-              <div className="absolute top-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md border border-white/10 px-3.5 py-2 rounded-xl text-xs">
+            {/* Real MapLibre GL JS canvas over a CARTO basemap (CSP allow-listed) */}
+            <div className="w-full h-[480px] bg-slate-950 relative overflow-hidden">
+              {mapError ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 gap-3">
+                  <p className="text-sm font-semibold text-rose-300">Basemap failed to load.</p>
+                  <p className="text-xs text-slate-400 max-w-sm">
+                    MapLibre tiles could not be reached. Feature details remain available in the inspector below.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setMapError(false)}
+                    className="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : (
+                <Map
+                  ref={mapRef}
+                  mapLib={maplibregl as any}
+                  initialViewState={{ longitude: 66.99, latitude: 30.1, zoom: 6.6 }}
+                  mapStyle={BASEMAP_STYLES[mapStyle]}
+                  onError={(e) => {
+                    console.error('MapLibre GL Error:', e);
+                    setMapError(true);
+                  }}
+                  style={{ width: '100%', height: '100%' }}
+                  attributionControl={false}
+                >
+                  <NavigationControl position="top-right" showCompass={false} />
+                  {filteredFeatures.map((feat) => {
+                    const isSelected = selectedFeature?.id === feat.id;
+                    return (
+                      <Marker key={feat.id} longitude={feat.lng} latitude={feat.lat} anchor="center">
+                        <button
+                          type="button"
+                          aria-label={feat.name}
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            focusFeature(feat);
+                          }}
+                          className="block cursor-pointer"
+                        >
+                          <span
+                            className={`block rounded-full border-2 border-white/80 shadow-lg transition-transform ${
+                              isSelected ? 'w-5 h-5 ring-4 ring-cyan-400/40' : 'w-3.5 h-3.5 hover:scale-125'
+                            } ${feat.layerCategory === 'RISK_HOTSPOT' ? 'animate-pulse' : ''}`}
+                            style={{ backgroundColor: MARKER_COLOR[feat.layerCategory] }}
+                          />
+                        </button>
+                      </Marker>
+                    );
+                  })}
+                </Map>
+              )}
+
+              {/* Map Title Overlay — now labels a genuine MapLibre GL JS canvas */}
+              <div className="absolute top-4 left-4 z-10 bg-slate-900/90 backdrop-blur-md border border-white/10 px-3.5 py-2 rounded-xl text-xs pointer-events-none">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="font-bold text-white font-mono">MAPLIBRE GL JS • WEBGIS SPATIAL VIEW</span>
                 </div>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  Coordinate Frame: EPSG:4326 (WGS84) • Balochistan Grid
+                  Coordinate Frame: EPSG:4326 (WGS84) • {filteredFeatures.length} feature(s) shown
                 </span>
-              </div>
-
-              {/* Interactive Map Nodes / Spatial Features */}
-              <div className="absolute inset-0 p-8 flex items-center justify-center">
-                <div className="relative w-full h-full border border-cyan-500/20 rounded-2xl bg-slate-900/40 p-6 flex flex-col justify-between">
-                  
-                  {/* Decorative River Basin Polyline Path */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30" viewBox="0 0 800 400" fill="none">
-                    <path d="M 50 80 Q 250 180, 450 120 T 750 320" stroke="#06b6d4" strokeWidth="4" strokeDasharray="6 6" />
-                    <path d="M 120 300 Q 350 220, 600 280 T 780 100" stroke="#3b82f6" strokeWidth="3" opacity="0.6" />
-                  </svg>
-
-                  {/* Render Feature Markers */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6 relative z-10 my-auto">
-                    {filteredFeatures.map((feat) => {
-                      const isSelected = selectedFeature?.id === feat.id;
-                      return (
-                        <div
-                          key={feat.id}
-                          onClick={() => setSelectedFeature(feat)}
-                          className={`p-4 rounded-xl border transition-all cursor-pointer group backdrop-blur-md ${
-                            isSelected
-                              ? 'bg-slate-900 border-cyan-400 shadow-[0_0_25px_rgba(6,182,212,0.3)] scale-105'
-                              : 'bg-slate-900/80 border-slate-700 hover:border-slate-500 hover:bg-slate-900'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getLayerColor(feat.layerCategory)}`}>
-                              {feat.layerCategory.replace('_', ' ')}
-                            </span>
-                            <MapPin className={`w-4 h-4 ${isSelected ? 'text-cyan-400' : 'text-slate-500 group-hover:text-cyan-400'}`} />
-                          </div>
-                          
-                          <h4 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
-                            {feat.name}
-                          </h4>
-                          <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                            {feat.district} • {feat.riverBasin}
-                          </p>
-
-                          <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2 text-[10px]">
-                            <span className={`font-semibold ${feat.usufructStatus === 'VERIFIED' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                              {feat.usufructStatus}
-                            </span>
-                            <span className="font-mono text-cyan-300">
-                              Lat: {feat.lat.toFixed(2)}, Lon: {feat.lng.toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             </div>
           </GlassCard>
