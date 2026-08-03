@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, getProviders } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -13,7 +13,28 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Default: assume credentials, no SSO — matches the no-SSO deployment and
+  // avoids a UI flash before getProviders() resolves. Updated on mount.
+  const [ssoProvider, setSsoProvider] = useState<{ id: string; name: string } | null>(null);
+  const [hasCredentials, setHasCredentials] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+    getProviders()
+      .then((providers) => {
+        if (!active || !providers) return;
+        const oidc = (providers as any).oidc;
+        setSsoProvider(oidc ? { id: oidc.id, name: oidc.name } : null);
+        setHasCredentials(Boolean((providers as any).credentials));
+      })
+      .catch(() => {
+        /* keep the credentials-only default if discovery fails */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +71,29 @@ export default function LoginPage() {
             <p className="text-sm text-slate-400 mt-2">Sign in to access the AnthropoGIS M&E Dashboard</p>
           </div>
 
+          {ssoProvider && (
+            <div className="space-y-4 mb-6">
+              <button
+                type="button"
+                onClick={() => signIn(ssoProvider.id, { callbackUrl: '/telemetry' })}
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-white text-slate-900 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                </svg>
+                Sign in with {ssoProvider.name}
+              </button>
+              {hasCredentials && (
+                <div className="flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px flex-1 bg-slate-800" />
+                  <span className="text-xs text-slate-500 uppercase tracking-wider">or</span>
+                  <span className="h-px flex-1 bg-slate-800" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {hasCredentials && (
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             {error && (
               <div
@@ -127,6 +171,7 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+          )}
 
           <div className="mt-8 pt-6 border-t border-slate-800 text-xs text-slate-500 text-center">
             {showDemoAccounts ? (
