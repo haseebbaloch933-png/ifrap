@@ -335,12 +335,12 @@ export function GrmTicketingCenter() {
             </select>
 
             {/* Status Filter Tabs */}
-            <div className="flex items-center bg-slate-800/80 p-1 rounded-lg border border-slate-700">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
               {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'ESCALATED'].map((st) => (
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
                     statusFilter === st
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
@@ -390,7 +390,7 @@ export function GrmTicketingCenter() {
                     </span>
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold border tracking-wider ${getStatusBadge(ticket.status)}`}>
+                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold border tracking-wider whitespace-nowrap ${getStatusBadge(ticket.status)}`}>
                       {ticket.status.replace('_', ' ')}
                     </span>
                   </td>
@@ -538,7 +538,7 @@ export function GrmTicketingCenter() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono font-bold text-cyan-300 text-sm">{selectedTicket.id}</span>
-                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${getStatusBadge(selectedTicket.status)}`}>
+                  <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${getStatusBadge(selectedTicket.status)}`}>
                     {selectedTicket.status.replace('_', ' ')}
                   </span>
                 </div>

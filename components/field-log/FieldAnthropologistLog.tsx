@@ -310,7 +310,7 @@ export function FieldAnthropologistLog() {
 
       {/* TAB 1: FORM ENTRY */}
       {activeTab === 'FORM' && (
-        <GlassCard className="p-6">
+        <GlassCard className="p-6" hoverEffect={false}>
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -471,7 +471,7 @@ export function FieldAnthropologistLog() {
 
       {/* TAB 2: LIVE PII SCRUBBING INSPECTION */}
       {activeTab === 'PII_PREVIEW' && (
-        <GlassCard className="p-6 space-y-6">
+        <GlassCard className="p-6 space-y-6" hoverEffect={false}>
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -553,7 +553,7 @@ export function FieldAnthropologistLog() {
 
       {/* TAB 3: RAG VECTOR EMBEDDING INTEGRATION */}
       {activeTab === 'RAG_EMBEDDING' && (
-        <GlassCard className="p-6 space-y-6">
+        <GlassCard className="p-6 space-y-6" hoverEffect={false}>
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -627,7 +627,7 @@ export function FieldAnthropologistLog() {
 
       {/* TAB 4: OFFLINE DRAFTS QUEUE */}
       {activeTab === 'OFFLINE_DRAFTS' && (
-        <GlassCard className="p-6 space-y-6">
+        <GlassCard className="p-6 space-y-6" hoverEffect={false}>
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
