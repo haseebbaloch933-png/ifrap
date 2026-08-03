@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '@/components/GlassCard';
 import { FinancialBurnRateWidget } from '@/components/FinancialBurnRateWidget';
@@ -12,10 +13,47 @@ import {
   CapabilityDimensionKey,
 } from '@/lib/mpi';
 import { IFRAPDistrictData } from '@/lib/ifrap-data';
+import { MOCK_COMPENSATION_BUDGET } from '@/lib/me-analytics';
 import { MEAnalyticsWidgets } from '@/components/MEAnalyticsWidgets';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
+// Isolated in its own component (and wrapped in Suspense below) because
+// useSearchParams() requires a Suspense boundary for static prerendering —
+// without it, `next build` fails to prerender this page entirely.
+function ForbiddenNotice() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('error') === 'Forbidden') {
+      setShow(true);
+    }
+  }, [searchParams]);
+
+  if (!show) return null;
+
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-start sm:items-center justify-between gap-3"
+    >
+      <span>You don't have permission to access that page. Redirected here instead.</span>
+      <button
+        onClick={() => {
+          setShow(false);
+          router.replace('/telemetry');
+        }}
+        className="shrink-0 px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-xs font-semibold transition-colors"
+      >
+        Dismiss
+      </button>
+    </div>
+  );
+}
 
 export function TelemetryDashboard() {
   const { t } = useI18n();
@@ -153,7 +191,11 @@ export function TelemetryDashboard() {
 
   return (
     <div className="space-y-8">
-      
+
+      <Suspense fallback={null}>
+        <ForbiddenNotice />
+      </Suspense>
+
       {/* Header & Title Banner */}
       <section aria-label="Telemetry Header" className="space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
@@ -216,7 +258,18 @@ export function TelemetryDashboard() {
 
       {/* Role-Gated Financial Compensation Burn Rate Widget */}
       <section aria-label="Financial Burn Rate Section">
-        <FinancialBurnRateWidget districtName={currentDistrict.districtName} />
+        {(() => {
+          const districtBudget = MOCK_COMPENSATION_BUDGET.districtBreakdown.find(
+            (d) => d.districtId === currentDistrict.id
+          );
+          return (
+            <FinancialBurnRateWidget
+              districtName={currentDistrict.districtName}
+              totalAllocatedPKR={districtBudget?.allocatedPKR ?? 0}
+              disbursedPKR={districtBudget?.disbursedPKR ?? 0}
+            />
+          );
+        })()}
       </section>
 
       {/* District Selector Tabs */}

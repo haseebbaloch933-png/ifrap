@@ -1,29 +1,53 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n-context';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { AccessibilityControls } from '@/components/AccessibilityControls';
+import { useRBAC, type UserRole } from '@/lib/rbac-context';
 
 export function NavbarHeader() {
-  const { t } = useI18n();
+  const { t, language, setLanguage } = useI18n();
+  const { role } = useRBAC();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // These dashboards don't call useI18n anywhere yet — showing Urdu on them
+  // would flip the shared nav to Urdu while the page content stays English.
+  // Hide the toggle there, and force the language back to English on entry
+  // (below) so arriving with Urdu already selected elsewhere can't leave the
+  // shell and the page out of sync. Drop an entry here once a route's i18n
+  // coverage is complete.
+  const UNTRANSLATED_ROUTES = ['/esf-telemetry', '/field-log', '/grm', '/gis-impact', '/me-results', '/admin'];
+  const isUntranslatedRoute = UNTRANSLATED_ROUTES.some((r) => pathname === r || pathname?.startsWith(`${r}/`));
+  const showLanguageToggle = !isUntranslatedRoute;
+
+  useEffect(() => {
+    if (isUntranslatedRoute && language !== 'en') {
+      setLanguage('en');
+    }
+  }, [isUntranslatedRoute, language, setLanguage]);
 
   // Single source of truth for nav links. `title` decodes each domain acronym
   // on hover so first-time viewers aren't lost, without stripping the
   // professional terminology. `label` is the compact desktop text; `mobileLabel`
-  // is the fuller name shown where the mobile menu has room.
-  const navItems = [
+  // is the fuller name shown where the mobile menu has room. `roles`, when set,
+  // hides the link from anyone whose session role isn't listed — omit it for
+  // links every authenticated role can reach.
+  const navItems: Array<{ href: string; label: string; mobileLabel: string; title: string; roles?: UserRole[] }> = [
     { href: '/', label: t.nav.overview, mobileLabel: t.nav.overview, title: 'Project overview and key impact indicators' },
     { href: '/esf-telemetry', label: 'ESF Telemetry', mobileLabel: 'ESF Telemetry Portal', title: 'Environmental & Social Framework (ESF) — safeguards compliance matrix' },
     { href: '/field-log', label: 'Field Log', mobileLabel: 'Field Anthropologist Log', title: 'Field anthropologist daily reports and observations' },
     { href: '/grm', label: 'GRM Center', mobileLabel: 'GRM Ticketing Center', title: 'Grievance Redress Mechanism (GRM) — log and track community complaints' },
     { href: '/gis-impact', label: 'GIS Mapper', mobileLabel: 'GIS Impact Mapper', title: 'Geographic Information System (GIS) — water infrastructure impact map' },
     { href: '/me-results', label: 'M&E Engine', mobileLabel: 'M&E Results Engine', title: 'Monitoring & Evaluation (M&E) — results and analytics dashboard' },
-    { href: '/admin', label: t.nav.admin, mobileLabel: t.nav.admin, title: 'Administrator console — manage users, roles, and settings' },
+    { href: '/admin', label: t.nav.admin, mobileLabel: t.nav.admin, title: 'Administrator console — manage users, roles, and settings', roles: ['FPMU_DIRECTOR'] },
   ];
+
+  const visibleNavItems = navItems.filter((item) => !item.roles || item.roles.includes(role));
 
   return (
     <>
@@ -62,7 +86,7 @@ export function NavbarHeader() {
 
           {/* Desktop Navigation Links */}
           <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-1 overflow-x-auto">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -76,7 +100,7 @@ export function NavbarHeader() {
 
           {/* Header Controls: Role Switcher, Language Switcher, High Contrast Switcher */}
           <div className="hidden md:flex items-center gap-2">
-            <LanguageSwitcher />
+            {showLanguageToggle && <LanguageSwitcher />}
             <AccessibilityControls />
             <RoleSwitcher />
             <div className="items-center gap-2 px-3 py-1 bg-green-900 border border-green-700 text-green-100 text-xs font-mono flex">
@@ -108,7 +132,7 @@ export function NavbarHeader() {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-slate-800 border-b border-slate-700 pb-4 px-4">
             <nav aria-label="Mobile Navigation" className="flex flex-col gap-2 mt-2">
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -122,7 +146,7 @@ export function NavbarHeader() {
             </nav>
             <div className="mt-4 flex flex-col gap-4 border-t border-slate-700 pt-4">
               <div className="flex gap-2">
-                <LanguageSwitcher />
+                {showLanguageToggle && <LanguageSwitcher />}
                 <AccessibilityControls />
               </div>
               <RoleSwitcher />
