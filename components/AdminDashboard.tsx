@@ -11,7 +11,7 @@ export function AdminDashboard() {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
 
-  // Force Sync: re-pull the live telemetry source and report what came back.
+  // Pull the live telemetry source and report what came back.
   const handleForceSync = async () => {
     setSyncing(true);
     setSyncMessage('Contacting telemetry source…');
@@ -20,29 +20,78 @@ export function AdminDashboard() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const districts = Array.isArray(data.districts) ? data.districts.length : 0;
-      setSyncMessage(`Synced ${districts} district records from telemetry source at ${new Date().toLocaleTimeString()}.`);
+      setSyncMessage(`Pulled ${districts} district records from telemetry source at ${new Date().toLocaleTimeString()}.`);
     } catch (err: any) {
-      setSyncMessage(`Sync failed: ${err.message}`);
+      setSyncMessage(`Pull failed: ${err.message}`);
     } finally {
       setSyncing(false);
     }
   };
 
-  // KoboToolbox CSV upload: parse and validate the file client-side and report rows/columns.
+  // Parse a single CSV line honoring simple double-quote quoting.
+  const parseCsvLine = (line: string): string[] => {
+    const out: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        out.push(cur); cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur);
+    return out.map((c) => c.trim());
+  };
+
+  // KoboToolbox CSV upload: parse client-side, then ACTUALLY ingest each row via
+  // /api/field-logs (PII is scrubbed and persisted server-side there) and report
+  // how many were persisted. Bounded to keep a huge export from stalling the demo.
+  const MAX_INGEST_ROWS = 500;
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const text = String(reader.result || '');
       const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-      if (lines.length === 0) {
-        setUploadMessage(`"${file.name}" is empty — nothing to import.`);
+      if (lines.length < 2) {
+        setUploadMessage(`"${file.name}" has no data rows — nothing to import.`);
         return;
       }
-      const columns = lines[0].split(',').length;
-      const rows = Math.max(0, lines.length - 1);
-      setUploadMessage(`Parsed ${rows} record(s) × ${columns} column(s) from "${file.name}". Validated and ready for ingestion.`);
+      const headers = parseCsvLine(lines[0]);
+      const dataLines = lines.slice(1);
+      const capped = dataLines.slice(0, MAX_INGEST_ROWS);
+
+      setUploadMessage(`Ingesting ${capped.length} record(s) from "${file.name}"…`);
+
+      let ingested = 0;
+      let failed = 0;
+      for (const line of capped) {
+        const cells = parseCsvLine(line);
+        const row: Record<string, string> = {};
+        headers.forEach((h, i) => { row[h || `col_${i}`] = cells[i] ?? ''; });
+        try {
+          const res = await fetch('/api/field-logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: 'kobo-csv', filename: file.name, ...row }),
+          });
+          if (res.ok) ingested++; else failed++;
+        } catch {
+          failed++;
+        }
+      }
+
+      const dropped = dataLines.length - capped.length;
+      const parts = [`Ingested & persisted ${ingested} record(s) × ${headers.length} column(s) from "${file.name}".`];
+      if (failed > 0) parts.push(`${failed} failed.`);
+      if (dropped > 0) parts.push(`${dropped} row(s) beyond the ${MAX_INGEST_ROWS}-row cap were skipped.`);
+      setUploadMessage(parts.join(' '));
     };
     reader.onerror = () => setUploadMessage(`Could not read "${file.name}".`);
     reader.readAsText(file);
@@ -125,7 +174,7 @@ export function AdminDashboard() {
               disabled={syncing}
               className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             >
-              {syncing ? 'Syncing…' : 'Force Sync Database'}
+              {syncing ? 'Pulling…' : 'Pull Latest Telemetry'}
             </button>
             {syncMessage && (
               <p role="status" className="text-xs text-slate-300 bg-slate-800/60 border border-slate-700 rounded px-3 py-2">

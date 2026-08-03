@@ -17,7 +17,7 @@ export function NavbarHeader() {
   // is the fuller name shown where the mobile menu has room.
   const navItems = [
     { href: '/', label: t.nav.overview, mobileLabel: t.nav.overview, title: 'Project overview and key impact indicators' },
-    { href: '/esf-telemetry', label: 'ESF Telemetry', mobileLabel: 'ESF Telemetry Portal', title: 'Environmental & Social Framework (ESF) — live safeguards telemetry' },
+    { href: '/esf-telemetry', label: 'ESF Telemetry', mobileLabel: 'ESF Telemetry Portal', title: 'Environmental & Social Framework (ESF) — safeguards compliance matrix' },
     { href: '/field-log', label: 'Field Log', mobileLabel: 'Field Anthropologist Log', title: 'Field anthropologist daily reports and observations' },
     { href: '/grm', label: 'GRM Center', mobileLabel: 'GRM Ticketing Center', title: 'Grievance Redress Mechanism (GRM) — log and track community complaints' },
     { href: '/gis-impact', label: 'GIS Mapper', mobileLabel: 'GIS Impact Mapper', title: 'Geographic Information System (GIS) — water infrastructure impact map' },

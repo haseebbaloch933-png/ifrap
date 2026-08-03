@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/GlassCard';
 import { RoleGate } from '@/lib/rbac-context';
 import { useI18n } from '@/lib/i18n-context';
@@ -36,6 +36,34 @@ export function UsufructGenerator() {
   const [issuedCert, setIssuedCert] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logs, setLogs] = useState(ledgerLogs);
+
+  // Hydrate the compliance ledger from the durable store so previously-issued
+  // certificates survive a reload (the /api/fiduciary route persists them).
+  useEffect(() => {
+    let active = true;
+    fetch('/api/fiduciary')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !d || !Array.isArray(d.certificates)) return;
+        const ledger = d.certificates.map((c: any) => ({
+          docId: c.certNumber,
+          timestamp: new Date(c.issuedAt).getTime(),
+          action: 'USUFRUCT_ISSUED',
+          path: `usufruct_certificates/${c.certNumber}`,
+          metadata: {
+            actor: 'FPMU_SYSTEM',
+            details: `Certificate issued for ${c.beneficiary} (${c.areaHectares} ha)`,
+          },
+        }));
+        setLogs(ledger);
+      })
+      .catch(() => {
+        /* keep whatever the in-memory ledger holds when offline */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleInputChange = (field: keyof UsufructFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
