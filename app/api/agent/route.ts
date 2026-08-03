@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractTokenFromRequest, verifyAndDecodeSAMLOrOIDCToken } from '@/lib/auth/saml-edge';
+import { getToken } from 'next-auth/jwt';
 import { runAntigravityAgent } from '@/lib/agent/antigravity-graph';
 
 export async function POST(req: NextRequest) {
   try {
-    const token = extractTokenFromRequest(req);
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized: SAML 2.0 / OIDC SSO token required' }, { status: 401 });
-    }
-
-    const claims = await verifyAndDecodeSAMLOrOIDCToken(token);
+    // Cryptographically verify the NextAuth session token (see middleware.ts).
+    const claims = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!claims || !claims.role) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid SAML 2.0 / OIDC SSO token' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -21,16 +17,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Bad Request: Missing or invalid query' }, { status: 400 });
     }
 
+    const role = String(claims.role);
+
     const result = await runAntigravityAgent({
       query,
-      userRole: claims.role,
+      userRole: role,
       district,
     });
 
     return NextResponse.json({
       success: true,
       data: result,
-      user: { sub: claims.sub, role: claims.role },
+      user: { sub: claims.sub, role },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });

@@ -47,5 +47,19 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'ifrap-anthropogis-super-secret-key-for-demo-purposes-only',
+  // No hardcoded fallback: a secret committed to source lets anyone forge a
+  // session JWT (e.g. role=FPMU_DIRECTOR). Require it from the environment and
+  // fail loudly if it is missing.
+  secret: getAuthSecret(),
 };
+
+function getAuthSecret(): string {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret || secret.length < 16) {
+    throw new Error(
+      'NEXTAUTH_SECRET is not set (or too short). Set a strong random value in ' +
+        '.env.local, e.g. `node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64\'))"`.'
+    );
+  }
+  return secret;
+}

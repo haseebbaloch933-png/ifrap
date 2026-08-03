@@ -58,7 +58,7 @@ export function DecolonialMap({
   }
 
   return (
-    <div className="relative w-full h-[600px] rounded-sm overflow-hidden border border-slate-300 shadow-wb-card bg-slate-50" aria-label={t.map?.subtitle || 'Map'}>
+    <div className="relative w-full h-[600px] rounded-sm overflow-hidden border border-slate-700 shadow-wb-card bg-slate-900" aria-label={t.map?.subtitle || 'Map'}>
       <Map
         mapLib={maplibregl as any}
         initialViewState={{
@@ -116,16 +116,16 @@ export function DecolonialMap({
       </Map>
 
       {/* Flat Institutional Control Overlay Panel */}
-      <div className="absolute top-4 left-4 z-10 p-4 rounded-sm bg-white border border-slate-300 shadow-md max-w-sm space-y-3 text-xs">
+      <div className="absolute top-4 left-4 z-10 p-4 rounded-sm bg-slate-900/90 backdrop-blur-md border border-slate-700 shadow-xl max-w-sm space-y-3 text-xs">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-900">{t.map?.title || 'Map'}</h3>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+          <h3 className="font-bold text-slate-100">{t.map?.title || 'Map'}</h3>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
             MapLibre GL JS
           </span>
         </div>
 
         <div className="space-y-1">
-          <label className="text-[11px] text-slate-600 font-semibold uppercase">{t.map?.layerControl || 'Layer Control'}</label>
+          <label className="text-[11px] text-slate-400 font-semibold uppercase">{t.map?.layerControl || 'Layer Control'}</label>
           <div role="tablist" aria-label={t.map?.layerControl || 'Layer Control'} className="flex gap-2">
             <button
               role="tab"
@@ -134,7 +134,7 @@ export function DecolonialMap({
               className={`flex-1 py-1.5 px-2 rounded-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 activeLayer === 'Technocratic Standard'
                   ? 'bg-blue-600 text-white font-bold'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
               }`}
             >
               {t.map?.technocratic || 'Technocratic'}
@@ -146,7 +146,7 @@ export function DecolonialMap({
               className={`flex-1 py-1.5 px-2 rounded-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 activeLayer === 'Decolonial ITK Layer'
                   ? 'bg-emerald-600 text-white font-bold'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
               }`}
             >
               {t.map?.decolonial || 'Decolonial ITK'}
@@ -154,17 +154,17 @@ export function DecolonialMap({
           </div>
         </div>
 
-        <div className="text-[11px] text-slate-600 space-y-1 border-t border-slate-200 pt-2">
-          <div>{t.map?.center || 'Center'}: <span className="font-mono text-slate-800">[{initialCenter[0]}, {initialCenter[1]}]</span></div>
-          <div>{t.map?.zoomLevel || 'Zoom'}: <span className="font-mono text-slate-800">{zoom}</span></div>
-          <div>{t.map?.activeLayer || 'Active Layer'}: <span className="font-semibold text-blue-700">{activeLayer}</span></div>
+        <div className="text-[11px] text-slate-400 space-y-1 border-t border-slate-700 pt-2">
+          <div>{t.map?.center || 'Center'}: <span className="font-mono text-slate-200">[{initialCenter[0]}, {initialCenter[1]}]</span></div>
+          <div>{t.map?.zoomLevel || 'Zoom'}: <span className="font-mono text-slate-200">{zoom}</span></div>
+          <div>{t.map?.activeLayer || 'Active Layer'}: <span className="font-semibold text-blue-400">{activeLayer}</span></div>
         </div>
 
         {selectedFeature && (
-          <div className="p-3 rounded-sm bg-slate-50 border border-slate-200 space-y-1.5 mt-2" aria-live="polite">
-            <div className="font-bold text-blue-700 text-sm">{selectedFeature.name}</div>
-            <div className="text-[11px] text-slate-600 italic">{selectedFeature.indigenousName}</div>
-            <div className="text-[10px] text-slate-700">
+          <div className="p-3 rounded-sm bg-slate-800/70 border border-slate-700 space-y-1.5 mt-2" aria-live="polite">
+            <div className="font-bold text-blue-300 text-sm">{selectedFeature.name}</div>
+            <div className="text-[11px] text-slate-400 italic">{selectedFeature.indigenousName}</div>
+            <div className="text-[10px] text-slate-300">
               {activeLayer === 'Decolonial ITK Layer'
                 ? selectedFeature.customaryWaterRights || selectedFeature.anthropologicalNotes
                 : selectedFeature.topDownAnnotation || selectedFeature.stateId}

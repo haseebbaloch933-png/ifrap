@@ -11,6 +11,20 @@ export function NavbarHeader() {
   const { t } = useI18n();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Single source of truth for nav links. `title` decodes each domain acronym
+  // on hover so first-time viewers aren't lost, without stripping the
+  // professional terminology. `label` is the compact desktop text; `mobileLabel`
+  // is the fuller name shown where the mobile menu has room.
+  const navItems = [
+    { href: '/', label: t.nav.overview, mobileLabel: t.nav.overview, title: 'Project overview and key impact indicators' },
+    { href: '/esf-telemetry', label: 'ESF Telemetry', mobileLabel: 'ESF Telemetry Portal', title: 'Environmental & Social Framework (ESF) — live safeguards telemetry' },
+    { href: '/field-log', label: 'Field Log', mobileLabel: 'Field Anthropologist Log', title: 'Field anthropologist daily reports and observations' },
+    { href: '/grm', label: 'GRM Center', mobileLabel: 'GRM Ticketing Center', title: 'Grievance Redress Mechanism (GRM) — log and track community complaints' },
+    { href: '/gis-impact', label: 'GIS Mapper', mobileLabel: 'GIS Impact Mapper', title: 'Geographic Information System (GIS) — water infrastructure impact map' },
+    { href: '/me-results', label: 'M&E Engine', mobileLabel: 'M&E Results Engine', title: 'Monitoring & Evaluation (M&E) — results and analytics dashboard' },
+    { href: '/admin', label: t.nav.admin, mobileLabel: t.nav.admin, title: 'Administrator console — manage users, roles, and settings' },
+  ];
+
   return (
     <>
       {/* Skip-to-Content Link for WCAG 2.1 AA Keyboard Navigation */}
@@ -48,48 +62,16 @@ export function NavbarHeader() {
 
           {/* Desktop Navigation Links */}
           <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-1 overflow-x-auto">
-            <Link
-              href="/"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              {t.nav.overview}
-            </Link>
-            <Link
-              href="/esf-telemetry"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              ESF Telemetry
-            </Link>
-            <Link
-              href="/field-log"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              Field Log
-            </Link>
-            <Link
-              href="/grm"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              GRM Center
-            </Link>
-            <Link
-              href="/gis-impact"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              GIS Mapper
-            </Link>
-            <Link
-              href="/me-results"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              M&E Engine
-            </Link>
-            <Link
-              href="/admin"
-              className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
-            >
-              {t.nav.admin}
-            </Link>
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={item.title}
+                className="px-2.5 py-1.5 min-h-[36px] flex items-center text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded whitespace-nowrap"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Header Controls: Role Switcher, Language Switcher, High Contrast Switcher */}
@@ -125,14 +107,18 @@ export function NavbarHeader() {
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-slate-800 border-b border-slate-700 pb-4 px-4">
-            <nav className="flex flex-col gap-2 mt-2">
-              <Link href="/" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">{t.nav.overview}</Link>
-              <Link href="/esf-telemetry" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">ESF Telemetry Portal</Link>
-              <Link href="/field-log" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">Field Anthropologist Log</Link>
-              <Link href="/grm" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">GRM Ticketing Center</Link>
-              <Link href="/gis-impact" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">GIS Impact Mapper</Link>
-              <Link href="/me-results" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">M&E Results Engine</Link>
-              <Link href="/admin" className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700">{t.nav.admin}</Link>
+            <nav aria-label="Mobile Navigation" className="flex flex-col gap-2 mt-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={item.title}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 min-h-[40px] flex items-center text-xs font-medium text-white hover:bg-slate-700 bg-slate-900 border border-slate-700"
+                >
+                  {item.mobileLabel}
+                </Link>
+              ))}
             </nav>
             <div className="mt-4 flex flex-col gap-4 border-t border-slate-700 pt-4">
               <div className="flex gap-2">
