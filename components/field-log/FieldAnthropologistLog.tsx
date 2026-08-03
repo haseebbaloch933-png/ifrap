@@ -248,10 +248,10 @@ export function FieldAnthropologistLog() {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
         <button
           onClick={() => setActiveTab('FORM')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'FORM'
               ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
               : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
@@ -263,7 +263,7 @@ export function FieldAnthropologistLog() {
 
         <button
           onClick={() => setActiveTab('PII_PREVIEW')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'PII_PREVIEW'
               ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
               : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
@@ -280,7 +280,7 @@ export function FieldAnthropologistLog() {
 
         <button
           onClick={() => setActiveTab('RAG_EMBEDDING')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'RAG_EMBEDDING'
               ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40 shadow-sm'
               : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'
@@ -297,7 +297,7 @@ export function FieldAnthropologistLog() {
 
         <button
           onClick={() => setActiveTab('OFFLINE_DRAFTS')}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 ${
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'OFFLINE_DRAFTS'
               ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm'
               : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-white/5'

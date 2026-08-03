@@ -32,6 +32,13 @@ export interface MonthlyBurnCurvePoint {
   actualDisbursementPKR: number;
 }
 
+export interface CompensationDistrictBreakdown {
+  districtId: string;
+  districtName: string;
+  allocatedPKR: number;
+  disbursedPKR: number;
+}
+
 export interface CompensationBudgetBurnData {
   totalAllocatedBudgetPKR: number;
   disbursedAmountPKR: number;
@@ -45,6 +52,12 @@ export interface CompensationBudgetBurnData {
     customaryWaterRightsCompensationPKR: number;
     livelihoodRestorationPKR: number;
   };
+  // Per-district allocation, proportional to beneficiaryHouseholds in
+  // lib/ifrap-data.ts. This is the canonical budget source for both
+  // MeResultsEngine (program-wide totals) and FinancialBurnRateWidget
+  // (per-district figures) — previously each hardcoded its own conflicting
+  // numbers. Sums to totalAllocatedBudgetPKR / disbursedAmountPKR exactly.
+  districtBreakdown: CompensationDistrictBreakdown[];
 }
 
 export interface GRMCategoryItem {
@@ -137,6 +150,16 @@ export const MOCK_COMPENSATION_BUDGET: CompensationBudgetBurnData = {
     customaryWaterRightsCompensationPKR: 55000000,
     livelihoodRestorationPKR: 35000000,
   },
+  // Proportional to beneficiaryHouseholds per district (lib/ifrap-data.ts).
+  // Sums exactly to totalAllocatedBudgetPKR (500M) / disbursedAmountPKR (365M).
+  districtBreakdown: [
+    { districtId: 'quetta', districtName: 'Quetta', allocatedPKR: 90000000, disbursedPKR: 65000000 },
+    { districtId: 'pishin', districtName: 'Pishin', allocatedPKR: 136000000, disbursedPKR: 99000000 },
+    { districtId: 'mastung', districtName: 'Mastung', allocatedPKR: 102000000, disbursedPKR: 75000000 },
+    { districtId: 'kalat', districtName: 'Kalat', allocatedPKR: 71000000, disbursedPKR: 51000000 },
+    { districtId: 'zhob', districtName: 'Zhob', allocatedPKR: 55000000, disbursedPKR: 40000000 },
+    { districtId: 'ziarat', districtName: 'Ziarat', allocatedPKR: 46000000, disbursedPKR: 35000000 },
+  ],
 };
 
 // Program-to-date GRM *analytics aggregate* (184 tickets over the project life).

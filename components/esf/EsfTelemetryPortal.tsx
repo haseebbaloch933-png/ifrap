@@ -565,16 +565,16 @@ export function EsfTelemetryPortal() {
           </GlassCard>
         )}
 
-        {/* Live Telemetry Audit Stream */}
+        {/* Safeguard Audit Log */}
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <Activity className="w-5 h-5 text-emerald-400" />
-                Live Telemetry Audit Logs & Field Event Stream
+                Safeguard Audit Log & Field Event History
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Real-time incident reporting and safeguard inspection log from Balochistan district monitoring units
+                Incident reporting and safeguard inspection log from the bundled reference dataset (see Reload Snapshot above)
               </p>
             </div>
             <span className="px-3 py-1 bg-slate-800 text-slate-300 text-xs font-mono rounded-full border border-slate-700">

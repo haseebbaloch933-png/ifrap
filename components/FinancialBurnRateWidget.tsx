@@ -7,17 +7,19 @@ import { useAnimateIn } from '@/hooks/useAnimateIn';
 
 export interface FinancialBurnRateWidgetProps {
   districtName?: string;
-  totalAllocatedUSD?: number;
-  disbursedUSD?: number;
+  totalAllocatedPKR: number;
+  disbursedPKR: number;
 }
+
+const formatPKR = (amount: number) => `${(amount / 1000000).toFixed(1)}M PKR`;
 
 export function FinancialBurnRateWidget({
   districtName = 'Balochistan Overall',
-  totalAllocatedUSD = 4250000,
-  disbursedUSD = 2800000,
+  totalAllocatedPKR,
+  disbursedPKR,
 }: FinancialBurnRateWidgetProps) {
   const animated = useAnimateIn(100);
-  const percentage = Math.round((disbursedUSD / totalAllocatedUSD) * 100);
+  const percentage = totalAllocatedPKR > 0 ? Math.round((disbursedPKR / totalAllocatedPKR) * 100) : 0;
 
   return (
     <RoleGate allowedRoles={['PROVINCIAL_PIU', 'FPMU_DIRECTOR']}>
@@ -37,19 +39,19 @@ export function FinancialBurnRateWidget({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 space-y-1">
             <span className="text-[10px] text-slate-400 uppercase font-sans">Total Allocation (IFRAP C3)</span>
-            <div className="text-xl font-bold text-emerald-400">${(totalAllocatedUSD / 1000000).toFixed(2)}M USD</div>
+            <div className="text-xl font-bold text-emerald-400">{formatPKR(totalAllocatedPKR)}</div>
             <p className="text-[10px] text-slate-500 font-sans">{districtName} Grant Allocation</p>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 space-y-1">
             <span className="text-[10px] text-slate-400 uppercase font-sans">Disbursed Compensation</span>
-            <div className="text-xl font-bold text-amber-400">${(disbursedUSD / 1000000).toFixed(2)}M USD</div>
+            <div className="text-xl font-bold text-amber-400">{formatPKR(disbursedPKR)}</div>
             <p className="text-[10px] text-slate-500 font-sans">{percentage}% Burn Rate Executed</p>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 space-y-1">
             <span className="text-[10px] text-slate-400 uppercase font-sans">Remaining Reserve</span>
-            <div className="text-xl font-bold text-cyan-400">${((totalAllocatedUSD - disbursedUSD) / 1000000).toFixed(2)}M USD</div>
+            <div className="text-xl font-bold text-cyan-400">{formatPKR(totalAllocatedPKR - disbursedPKR)}</div>
             <p className="text-[10px] text-slate-500 font-sans">Unallocated Contingency</p>
           </div>
         </div>

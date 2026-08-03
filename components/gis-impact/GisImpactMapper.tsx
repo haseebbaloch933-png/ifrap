@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Map, { Marker, NavigationControl, type MapRef } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
+import { BALOCHISTAN_DISTRICTS } from '@/lib/districts';
+import type { GrmTicket } from '@/components/grm/GrmTicketingCenter';
 import {
   Layers,
   MapPin,
@@ -37,7 +39,6 @@ export interface SpatialFeature {
   lat: number;
   lng: number;
   karezName?: string;
-  activeGrmTicketsCount: number;
   notes: string;
 }
 
@@ -54,7 +55,6 @@ const mockSpatialFeatures: SpatialFeature[] = [
     lat: 29.7985,
     lng: 66.8452,
     karezName: 'Karez Chashma Mirab',
-    activeGrmTicketsCount: 1,
     notes: 'Ancient 400-year stone aqueduct intake headwork under active structural rehabilitation.',
   },
   {
@@ -69,7 +69,6 @@ const mockSpatialFeatures: SpatialFeature[] = [
     lat: 29.8150,
     lng: 66.8210,
     karezName: 'Karez Pringabad',
-    activeGrmTicketsCount: 2,
     notes: '2022 flood deposit covered 120 hectares of customary agriculture usufruct parcels.',
   },
   {
@@ -84,7 +83,6 @@ const mockSpatialFeatures: SpatialFeature[] = [
     lat: 30.3811,
     lng: 67.7264,
     karezName: 'Kawas Karez',
-    activeGrmTicketsCount: 0,
     notes: 'Riparian buffer protected from heavy machinery excavation to prevent aquifer collapse.',
   },
   {
@@ -99,7 +97,6 @@ const mockSpatialFeatures: SpatialFeature[] = [
     lat: 30.5833,
     lng: 66.9833,
     karezName: 'Karez Yaro',
-    activeGrmTicketsCount: 3,
     notes: 'High safeguard risk hotspot due to downstream water turn disputes between Tarain & Kakar clans.',
   },
   {
@@ -114,7 +111,6 @@ const mockSpatialFeatures: SpatialFeature[] = [
     lat: 30.3725,
     lng: 66.9588,
     karezName: 'Karez Kuchlak',
-    activeGrmTicketsCount: 0,
     notes: 'Registered in Digital Usufruct Ledger; 45 family beneficiary households mapped.',
   },
 ];
@@ -139,6 +135,35 @@ export function GisImpactMapper() {
   const [mapStyle, setMapStyle] = useState<'DARK' | 'LIGHT' | 'STREETS'>('DARK');
   const [mapError, setMapError] = useState(false);
   const mapRef = useRef<MapRef | null>(null);
+
+  // Real GRM ticket queue (same source GrmTicketingCenter reads), used below
+  // to compute genuine active-ticket counts per district instead of the
+  // static per-feature numbers this page used to invent.
+  const [grmTickets, setGrmTickets] = useState<GrmTicket[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/grm')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active && d && Array.isArray(d.tickets)) setGrmTickets(d.tickets as GrmTicket[]);
+      })
+      .catch(() => {
+        /* leave empty when offline — counts show 0 rather than a stale guess */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const activeGrmCountByDistrict = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const ticket of grmTickets) {
+      if (ticket.status === 'RESOLVED') continue;
+      counts[ticket.district] = (counts[ticket.district] ?? 0) + 1;
+    }
+    return counts;
+  }, [grmTickets]);
 
   const BASEMAP_STYLES: Record<'DARK' | 'LIGHT' | 'STREETS', string> = {
     DARK: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
@@ -234,10 +259,9 @@ export function GisImpactMapper() {
             className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
           >
             <option value="ALL">All Districts</option>
-            <option value="Quetta">Quetta</option>
-            <option value="Mastung">Mastung</option>
-            <option value="Pishin">Pishin</option>
-            <option value="Ziarat">Ziarat</option>
+            {BALOCHISTAN_DISTRICTS.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
           </select>
         </div>
       </header>
@@ -458,7 +482,7 @@ export function GisImpactMapper() {
                   </div>
                   <div className="flex justify-between items-center py-1">
                     <span className="text-slate-400">Linked Active GRM Tickets:</span>
-                    <span className="font-bold text-rose-400 font-mono text-sm">{selectedFeature.activeGrmTicketsCount} Tickets</span>
+                    <span className="font-bold text-rose-400 font-mono text-sm">{activeGrmCountByDistrict[selectedFeature.district] ?? 0} Tickets</span>
                   </div>
                 </div>
               </div>

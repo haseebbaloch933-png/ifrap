@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
 import { GRM_SEED } from '@/lib/grm-data';
+import { BALOCHISTAN_DISTRICTS } from '@/lib/districts';
 import {
   LifeBuoy,
   Plus,
@@ -90,10 +91,14 @@ export function GrmTicketingCenter() {
     };
   }, []);
 
-  // Fixed SLA Compliance calculation (75.0% baseline requirement with dynamic backup)
+  // SLA Compliance: real compliance rate among resolved tickets against the
+  // World Bank ESS10 72-hour benchmark. No resolved tickets yet -> 100% (no
+  // breaches to report), not a fabricated constant.
   const resolvedTickets = tickets.filter(t => t.status === 'RESOLVED');
   const compliantCount = resolvedTickets.filter(t => t.slaCompliant).length;
-  const slaPercentage = 75.0; // Benchmark requirement strictly set to 75.0%
+  const slaPercentage = resolvedTickets.length > 0
+    ? (compliantCount / resolvedTickets.length) * 100
+    : 100;
 
   const openTicketsCount = tickets.filter(t => t.status === 'OPEN').length;
   const inProgressCount = tickets.filter(t => t.status === 'IN_PROGRESS').length;
@@ -446,7 +451,7 @@ export function GrmTicketingCenter() {
                     onChange={(e) => setNewTicketForm({ ...newTicketForm, district: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"
                   >
-                    {['Quetta', 'Mastung', 'Pishin', 'Ziarat', 'Killa Abdullah', 'Zhob', 'Jaffarabad'].map((d) => (
+                    {BALOCHISTAN_DISTRICTS.map((d) => (
                       <option key={d} value={d}>
                         {d} District
                       </option>

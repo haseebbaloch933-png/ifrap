@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
+import { MOCK_COMPENSATION_BUDGET } from '@/lib/me-analytics';
 import {
   BarChart3,
   TrendingUp,
@@ -129,10 +130,15 @@ export function MeResultsEngine() {
   const [capabilities, setCapabilities] = useState<SenianMpiCapability[]>(mockSenianCapabilities);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 
-  // Financial Progress vs Physical Progress
-  const totalAllocatedBudgetMs = 5.5; // $5.5M
-  const totalDisbursedBudgetMs = 4.2; // $4.2M spent (76.4%)
-  const overallPhysicalProgress = 78.5; // 78.5% physical completion
+  // Financial Progress vs Physical Progress — sourced from the canonical
+  // program budget (lib/me-analytics.ts) so this figure matches the
+  // Telemetry dashboard's Financial Burn Rate widget instead of inventing
+  // its own number.
+  const totalAllocatedBudgetPKR = MOCK_COMPENSATION_BUDGET.totalAllocatedBudgetPKR;
+  const totalDisbursedBudgetPKR = MOCK_COMPENSATION_BUDGET.disbursedAmountPKR;
+  const burnRatePercentage = MOCK_COMPENSATION_BUDGET.burnRatePercentage;
+  const overallPhysicalProgress = 78.5; // 78.5% physical completion (independent civil-works metric)
+  const formatPKR = (amount: number) => `${(amount / 1000000).toFixed(1)}M PKR`;
 
   // Export CSV Handler
   const handleExportCsv = async () => {
@@ -186,8 +192,8 @@ export function MeResultsEngine() {
       doc.rect(14, 34, 182, 24, 'F');
       doc.setFontSize(10);
       doc.setTextColor(15, 23, 42);
-      doc.text(`Total Component 3 Budget: $${totalAllocatedBudgetMs}M USD`, 18, 42);
-      doc.text(`Disbursed Burn Rate: $${totalDisbursedBudgetMs}M USD (${((totalDisbursedBudgetMs / totalAllocatedBudgetMs) * 100).toFixed(1)}%)`, 18, 49);
+      doc.text(`Total Component 3 Budget: ${formatPKR(totalAllocatedBudgetPKR)}`, 18, 42);
+      doc.text(`Disbursed Burn Rate: ${formatPKR(totalDisbursedBudgetPKR)} (${burnRatePercentage.toFixed(1)}%)`, 18, 49);
       doc.text(`Physical Works Progress: ${overallPhysicalProgress}%`, 110, 42);
 
       // Table 1: Component 3 KPIs
@@ -305,10 +311,10 @@ export function MeResultsEngine() {
             <DollarSign className="w-5 h-5 text-amber-400" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-amber-400">$4.2M</span>
-            <span className="text-xs text-slate-400">of $5.5M USD</span>
+            <span className="text-3xl font-black text-amber-400">{formatPKR(totalDisbursedBudgetPKR)}</span>
+            <span className="text-xs text-slate-400">of {formatPKR(totalAllocatedBudgetPKR)}</span>
           </div>
-          <p className="text-xs text-slate-400 mt-2">76.4% financial disbursement rate</p>
+          <p className="text-xs text-slate-400 mt-2">{burnRatePercentage.toFixed(1)}% financial disbursement rate</p>
         </GlassCard>
 
         <GlassCard glowColor="violet">
@@ -471,14 +477,14 @@ export function MeResultsEngine() {
           <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-3">
             <h3 className="font-bold text-slate-200">Financial Disbursement Burn Rate</h3>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-amber-400">$4.2M</span>
-              <span className="text-slate-400">Disbursed out of $5.5M Total Allocation</span>
+              <span className="text-3xl font-black text-amber-400">{formatPKR(totalDisbursedBudgetPKR)}</span>
+              <span className="text-slate-400">Disbursed out of {formatPKR(totalAllocatedBudgetPKR)} Total Allocation</span>
             </div>
             <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
-              <div className="bg-amber-400 h-full rounded-full" style={{ width: '76.4%' }} />
+              <div className="bg-amber-400 h-full rounded-full" style={{ width: `${burnRatePercentage}%` }} />
             </div>
             <span className="text-[11px] text-slate-400 block font-mono">
-              Financial Disbursement Index: 76.4%
+              Financial Disbursement Index: {burnRatePercentage.toFixed(1)}%
             </span>
           </div>
 
@@ -492,7 +498,9 @@ export function MeResultsEngine() {
               <div className="bg-cyan-400 h-full rounded-full" style={{ width: `${overallPhysicalProgress}%` }} />
             </div>
             <span className="text-[11px] text-slate-400 block font-mono">
-              Fiduciary Balance Variance: +2.1% (Physical ahead of expenditure)
+              Fiduciary Balance Variance: {(overallPhysicalProgress - burnRatePercentage >= 0 ? '+' : '')}
+              {(overallPhysicalProgress - burnRatePercentage).toFixed(1)}%{' '}
+              ({overallPhysicalProgress >= burnRatePercentage ? 'Physical ahead of expenditure' : 'Expenditure ahead of physical works'})
             </span>
           </div>
         </div>
