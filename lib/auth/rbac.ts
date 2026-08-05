@@ -30,6 +30,8 @@ export const PROTECTED_ROUTES: Array<{ path: string; allowedRoles: Role[] }> = [
   // PROVINCIAL_PIU here, so a PIU passed the edge gate then got bounced by the page.)
   { path: '/admin', allowedRoles: ['FPMU_DIRECTOR'] },
   { path: '/fiduciary', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
+  // The access/audit log names who touched sensitive data — Director-only.
+  { path: '/api/audit-log', allowedRoles: ['FPMU_DIRECTOR'] },
 ];
 
 export const PUBLIC_ROUTES: string[] = [

@@ -29,6 +29,7 @@ export const config = {
     '/api/grm/:path*',
     '/api/field-logs/:path*',
     '/api/fiduciary/:path*',
+    '/api/audit-log/:path*',
   ],
 };
 
