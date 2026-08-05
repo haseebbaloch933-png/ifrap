@@ -3,12 +3,14 @@ import crypto from 'crypto';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAll, transaction } from '@/lib/server/store';
+import { recordAudit, actorFromSession, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 
 // crypto + the file-backed store require the Node runtime (not Edge).
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const COLLECTION = 'usufruct-certs';
+const ROUTE = '/api/fiduciary';
 
 export interface UsufructCertRecord {
   id: string;
@@ -35,16 +37,21 @@ async function requireElevated() {
 
 // List the persisted usufruct certificate ledger (issued certs survive restarts).
 export async function GET() {
-  if (!(await requireElevated())) {
+  const session = await requireElevated();
+  if (!session) {
+    await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 403 });
     return NextResponse.json({ error: 'Unauthorized: Elevated privileges required' }, { status: 403 });
   }
   const certificates = await getAll<UsufructCertRecord>(COLLECTION, []);
+  await recordAudit({ actor: actorFromSession(session), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ count: certificates.length, certificates });
 }
 
 export async function POST(request: Request) {
   try {
-    if (!(await requireElevated())) {
+    const session = await requireElevated();
+    if (!session) {
+      await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'POST', route: ROUTE, action: 'DENIED', status: 403 });
       return NextResponse.json({ error: 'Unauthorized: Elevated privileges required' }, { status: 403 });
     }
 
@@ -97,6 +104,8 @@ export async function POST(request: Request) {
       existing.unshift(newRecord);
       return newRecord;
     });
+
+    await recordAudit({ actor: actorFromSession(session), method: 'POST', route: ROUTE, action: 'ISSUE_CERT', status: 200, target: record.certNumber });
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,26 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GlassCard } from '@/components/GlassCard';
 import { useAnimateIn } from '@/hooks/useAnimateIn';
+
+interface AuditEntry {
+  id: string;
+  seq: number;
+  at: string;
+  actor: { sub: string; email: string; role: string };
+  method: string;
+  route: string;
+  action: string;
+  status: number;
+  target?: string;
+}
+interface AuditVerification {
+  valid: boolean;
+  entries: number;
+  brokenAtSeq?: number;
+  reason?: string;
+}
 
 export function AdminDashboard() {
   const animated = useAnimateIn(100);
@@ -10,6 +28,28 @@ export function AdminDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditVerification, setAuditVerification] = useState<AuditVerification | null>(null);
+  const [auditState, setAuditState] = useState<'loading' | 'ready' | 'error'>('loading');
+
+  const loadAuditLog = useCallback(async () => {
+    setAuditState('loading');
+    try {
+      const res = await fetch('/api/audit-log', { headers: { accept: 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setAuditEntries(Array.isArray(data.entries) ? data.entries : []);
+      setAuditVerification(data.verification ?? null);
+      setAuditState('ready');
+    } catch {
+      setAuditState('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAuditLog();
+  }, [loadAuditLog]);
 
   // Pull the live telemetry source and report what came back.
   const handleForceSync = async () => {
@@ -184,6 +224,102 @@ export function AdminDashboard() {
           </div>
         </GlassCard>
       </div>
+
+      {/* Immutable Access / Audit Log (ESS10) */}
+      <GlassCard>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-white">Access &amp; Audit Log</h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Tamper-evident record of every access to grievance, land-tenure, and field data
+              (GRM, fiduciary, field-logs). World Bank ESS10.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadAuditLog}
+            disabled={auditState === 'loading'}
+            className="shrink-0 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-colors text-xs font-semibold disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          >
+            {auditState === 'loading' ? 'Verifying…' : 'Re-verify chain'}
+          </button>
+        </div>
+
+        {/* Chain integrity banner */}
+        {auditVerification && (
+          <div
+            role="status"
+            className={`mb-4 px-3 py-2 rounded border text-xs font-semibold ${
+              auditVerification.valid
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                : 'bg-rose-500/10 border-rose-500/40 text-rose-300'
+            }`}
+          >
+            {auditVerification.valid
+              ? `✓ Chain intact — ${auditVerification.entries} entr${auditVerification.entries === 1 ? 'y' : 'ies'} verified, no tampering detected.`
+              : `✗ Chain integrity FAILED at entry #${auditVerification.brokenAtSeq ?? '?'}${auditVerification.reason ? ` (${auditVerification.reason})` : ''}. Records may have been altered.`}
+          </div>
+        )}
+
+        {auditState === 'error' && (
+          <p className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded px-3 py-2">
+            Could not load the audit log.
+          </p>
+        )}
+
+        {auditState === 'ready' && auditEntries.length === 0 && (
+          <p className="text-sm text-slate-400">No access recorded yet.</p>
+        )}
+
+        {auditEntries.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="text-slate-400 border-b border-white/10">
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">#</th>
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">Time (UTC)</th>
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">Actor</th>
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">Action</th>
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">Route</th>
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">Target</th>
+                  <th className="py-2 pr-3 font-semibold whitespace-nowrap">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {auditEntries.slice(0, 100).map((e) => (
+                  <tr key={e.id} className="text-slate-300">
+                    <td className="py-2 pr-3 font-mono text-slate-500 whitespace-nowrap">{e.seq}</td>
+                    <td className="py-2 pr-3 font-mono whitespace-nowrap">{e.at.replace('T', ' ').replace('Z', '').slice(0, 19)}</td>
+                    <td className="py-2 pr-3 whitespace-nowrap">
+                      <span className="text-slate-200">{e.actor.email || e.actor.sub}</span>
+                      {e.actor.role && <span className="ml-1.5 text-[10px] text-slate-500">{e.actor.role}</span>}
+                    </td>
+                    <td className="py-2 pr-3 whitespace-nowrap">
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          e.action === 'DENIED'
+                            ? 'bg-rose-500/20 text-rose-300'
+                            : e.action === 'LIST'
+                            ? 'bg-slate-600/40 text-slate-300'
+                            : 'bg-cyan-500/20 text-cyan-300'
+                        }`}
+                      >
+                        {e.action}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-3 font-mono text-slate-400 whitespace-nowrap">{e.route}</td>
+                    <td className="py-2 pr-3 font-mono text-slate-400 whitespace-nowrap">{e.target ?? '—'}</td>
+                    <td className="py-2 pr-3 font-mono whitespace-nowrap">{e.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {auditEntries.length > 100 && (
+              <p className="text-[11px] text-slate-500 mt-2">Showing the 100 most recent of {auditEntries.length} entries.</p>
+            )}
+          </div>
+        )}
+      </GlassCard>
     </div>
   );
 }

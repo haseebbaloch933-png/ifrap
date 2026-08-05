@@ -81,6 +81,11 @@ Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
   least-privileged role. `middleware.ts` verifies the session with `getToken`
   and enforces `PROTECTED_ROUTES` from `lib/auth/rbac.ts`; the two must stay in
   sync (`tests/matcher-coverage.test.js` fails if they drift).
+- **Audit log** — `lib/server/audit-log.ts` records a hash-chained,
+  tamper-evident entry for every access to the sensitive routes (GRM,
+  fiduciary, field-logs). Directors read it and its chain-integrity status at
+  `/api/audit-log` and on the Admin dashboard; `npm run verify:audit` proves
+  any edit/reorder/deletion of a past entry is detected.
 - **Persistence** — `lib/server/store.ts` is a dispatcher behind a repository
   seam (`getAll/insert/update/transaction`). It selects the backend by env:
   - `DATABASE_URL` **unset** → file store (`lib/server/file-store.ts`) under the
@@ -159,7 +164,12 @@ These are scoping items, not bugs:
 
 **Regulatory (require the FPMU's legal/security officers + an accredited assessor)**
 - **World Bank ESF/ESS10:** DPIA, data classification & retention policy,
-  immutable access/audit logging, end-to-end encryption of grievance data.
+  ~~immutable access/audit logging~~ **(implemented)** — a hash-chained,
+  tamper-evident log records every access to the sensitive routes (GRM,
+  fiduciary, field-logs); Directors review it and its integrity status on the
+  Admin dashboard, and `npm run verify:audit` proves tampering is detected.
+  Remaining ESS10 items: end-to-end encryption of grievance data, data
+  classification & retention policy, and the DPIA itself.
 - **Government of Pakistan:** in-country data localization, Personal Data
   Protection alignment (lawful basis, consent, subject access, breach
   notification), and NTISB security certification for a `.gov.pk` system.

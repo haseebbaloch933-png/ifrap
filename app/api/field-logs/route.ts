@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { getAll, insert } from '@/lib/server/store';
 import { scrubPayload, getScrubAudit } from '@/lib/privacy/ner-pii-scrubber';
+import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const COLLECTION = 'field-logs';
+const ROUTE = '/api/field-logs';
 
 export interface StoredFieldLog {
   id: string;
@@ -25,10 +27,13 @@ async function requireAuth(req: NextRequest) {
 
 // List ingested field logs (already PII-scrubbed at write time).
 export async function GET(req: NextRequest) {
-  if (!(await requireAuth(req))) {
+  const token = await requireAuth(req);
+  if (!token) {
+    await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
   const logs = await getAll<StoredFieldLog>(COLLECTION, []);
+  await recordAudit({ actor: actorFromToken(token), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ count: logs.length, logs });
 }
 
@@ -37,6 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const token = await requireAuth(req);
   if (!token) {
+    await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'POST', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
   let body: any;
@@ -62,5 +68,6 @@ export async function POST(req: NextRequest) {
   };
 
   await insert<StoredFieldLog>(COLLECTION, record, []);
+  await recordAudit({ actor: actorFromToken(token), method: 'POST', route: ROUTE, action: 'INGEST', status: 201, target: record.id });
   return NextResponse.json({ id: record.id, status: 'ingested', piiAudit }, { status: 201 });
 }
