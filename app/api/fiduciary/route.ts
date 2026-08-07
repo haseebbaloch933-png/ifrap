@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAll, transaction } from '@/lib/server/store';
 import { recordAudit, actorFromSession, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
+import { sealFields, openFields } from '@/lib/server/field-crypto';
 
 // crypto + the file-backed store require the Node runtime (not Edge).
 export const runtime = 'nodejs';
@@ -11,6 +12,10 @@ export const dynamic = 'force-dynamic';
 
 const COLLECTION = 'usufruct-certs';
 const ROUTE = '/api/fiduciary';
+
+// Beneficiary/clan identity encrypted at rest; certNumber/district/parcel stay
+// clear so the ledger stays listable and the uniqueness check still works.
+const SENSITIVE: (keyof UsufructCertRecord)[] = ['beneficiary', 'clan'];
 
 export interface UsufructCertRecord {
   id: string;
@@ -42,7 +47,8 @@ export async function GET() {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 403 });
     return NextResponse.json({ error: 'Unauthorized: Elevated privileges required' }, { status: 403 });
   }
-  const certificates = await getAll<UsufructCertRecord>(COLLECTION, []);
+  const stored = await getAll<UsufructCertRecord>(COLLECTION, []);
+  const certificates = stored.map((c) => openFields(c, SENSITIVE));
   await recordAudit({ actor: actorFromSession(session), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ count: certificates.length, certificates });
 }
@@ -101,8 +107,8 @@ export async function POST(request: Request) {
         hash,
         status: 'ACTIVE',
       };
-      existing.unshift(newRecord);
-      return newRecord;
+      existing.unshift(sealFields(newRecord, SENSITIVE)); // store sealed
+      return newRecord; // return cleartext to the caller
     });
 
     await recordAudit({ actor: actorFromSession(session), method: 'POST', route: ROUTE, action: 'ISSUE_CERT', status: 200, target: record.certNumber });

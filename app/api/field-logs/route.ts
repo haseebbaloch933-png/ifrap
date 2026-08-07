@@ -3,12 +3,18 @@ import { getToken } from 'next-auth/jwt';
 import { getAll, insert } from '@/lib/server/store';
 import { scrubPayload, getScrubAudit } from '@/lib/privacy/ner-pii-scrubber';
 import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
+import { sealFields, openFields } from '@/lib/server/field-crypto';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const COLLECTION = 'field-logs';
 const ROUTE = '/api/field-logs';
+
+// The whole narrative payload is encrypted at rest (defense-in-depth on top of
+// the PII scrubbing already applied below); id/receivedAt/submittedBy/piiAudit
+// stay clear for listing and the compliance summary.
+const SENSITIVE: (keyof StoredFieldLog)[] = ['payload'];
 
 export interface StoredFieldLog {
   id: string;
@@ -32,7 +38,8 @@ export async function GET(req: NextRequest) {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
-  const logs = await getAll<StoredFieldLog>(COLLECTION, []);
+  const stored = await getAll<StoredFieldLog>(COLLECTION, []);
+  const logs = stored.map((l) => openFields(l, SENSITIVE));
   await recordAudit({ actor: actorFromToken(token), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ count: logs.length, logs });
 }
@@ -67,7 +74,7 @@ export async function POST(req: NextRequest) {
     payload: scrubbed,
   };
 
-  await insert<StoredFieldLog>(COLLECTION, record, []);
+  await insert<StoredFieldLog>(COLLECTION, sealFields(record, SENSITIVE), []);
   await recordAudit({ actor: actorFromToken(token), method: 'POST', route: ROUTE, action: 'INGEST', status: 201, target: record.id });
   return NextResponse.json({ id: record.id, status: 'ingested', piiAudit }, { status: 201 });
 }
