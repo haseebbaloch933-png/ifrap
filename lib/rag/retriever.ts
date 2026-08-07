@@ -6,7 +6,9 @@
  * document title + summary + metadata) rather than true vector cosine
  * similarity. Crucially, the `query` now actually drives the ranking — it was
  * previously ignored, with hardcoded similarity scores returned regardless of
- * the query. Swap `scoreRelevance` for a real embedding lookup to upgrade.
+ * the query. The caller's `matchThreshold` is now honored as a relevance
+ * cutoff (it was previously accepted and ignored). Swap `scoreRelevance` for a
+ * real embedding lookup to upgrade.
  */
 
 export interface RAGSearchOptions {
@@ -84,6 +86,8 @@ function scoreRelevance(queryTerms: string[], doc: RAGSearchResult): number {
 
 export async function retrieveFieldLogEmbeddings(options: RAGSearchOptions): Promise<RAGSearchResult[]> {
   const limit = options.limit || 5;
+  // Relevance cutoff in [0,1]. Callers that omit it get no filtering.
+  const matchThreshold = options.matchThreshold ?? 0;
 
   let candidates = MOCK_VECTOR_STORE;
   if (options.district) {
@@ -94,17 +98,19 @@ export async function retrieveFieldLogEmbeddings(options: RAGSearchOptions): Pro
 
   const queryTerms = Array.from(new Set(tokenize(options.query)));
 
-  // No usable query terms → return the (district-filtered) candidate set as-is.
+  // No usable query terms → return the (district-filtered) candidates whose
+  // stored similarity clears the threshold.
   if (queryTerms.length === 0) {
-    return candidates.slice(0, limit);
+    return candidates.filter((doc) => doc.similarity >= matchThreshold).slice(0, limit);
   }
 
   const scored = candidates
     .map((doc) => ({ ...doc, similarity: scoreRelevance(queryTerms, doc) }))
     .sort((a, b) => b.similarity - a.similarity);
 
-  // Prefer documents that actually match the query; if nothing matches, fall
-  // back to the district-filtered set so the agent still has context to reason over.
-  const matched = scored.filter((doc) => doc.similarity > 0);
-  return (matched.length > 0 ? matched : scored).slice(0, limit);
+  // Honor the caller's relevance cutoff: only return documents at/above it.
+  // (matchThreshold was previously accepted but ignored, and any doc with a
+  // non-zero score was returned — so the agent could report "no matches above
+  // threshold" while sub-threshold docs were actually in the result set.)
+  return scored.filter((doc) => doc.similarity >= matchThreshold).slice(0, limit);
 }
