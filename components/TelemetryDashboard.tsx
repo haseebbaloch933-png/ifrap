@@ -131,7 +131,7 @@ export function TelemetryDashboard() {
     } else if (downloadFormat === 'pdf') {
       const doc = new jsPDF();
       doc.setFontSize(16);
-      doc.text('AnthropoGIS: IFRAP Telemetry Report', 14, 20);
+      doc.text('MIRAB: IFRAP Component 3 Telemetry Report', 14, 20);
       
       doc.setFontSize(11);
       doc.setTextColor(100);

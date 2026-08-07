@@ -1,6 +1,6 @@
 /**
  * Simulated Firebase SDK Module & Fiduciary Ledger Security Engine
- * For Applied Anthropology Portfolio & M&E Telemetry Dashboard
+ * For MIRAB — IFRAP Component 3 Platform (water governance & M&E telemetry)
  */
 
 export interface LedgerLog {

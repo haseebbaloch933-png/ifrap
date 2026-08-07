@@ -16,15 +16,16 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Applied Anthropology WebGIS & M&E Telemetry Dashboard',
-  description: 'Integrative Decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) Analytics, & Fiduciary Usufruct Ledger for Balochistan Water Infrastructure.',
+  title: 'MIRAB — IFRAP Component 3 Water Governance & M&E Platform',
+  description: 'Official platform for World Bank IFRAP Component 3 (Balochistan water governance): decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, Grievance Redress, and a fiduciary customary-usufruct ledger.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'WB-IFRAP M&E',
+    title: 'MIRAB · IFRAP C3',
   },
   keywords: [
+    'MIRAB',
     'Applied Anthropology',
     'WebGIS',
     'Balochistan Karez',
@@ -34,11 +35,11 @@ export const metadata: Metadata = {
     'Usufruct Rights',
     'Telemetry Dashboard',
   ],
-  authors: [{ name: 'Applied Anthropology Research Team' }],
+  authors: [{ name: 'IFRAP Component 3 Programme (FPMU / PIU)' }],
   metadataBase: new URL('https://anthropologyportfolio.vercel.app'),
   openGraph: {
-    title: 'Applied Anthropology WebGIS & M&E Telemetry',
-    description: 'Decolonial spatial analytics and Senian capability metrics for water resource management.',
+    title: 'MIRAB — IFRAP Component 3 Platform',
+    description: 'Decolonial spatial analytics and Senian capability metrics for World Bank IFRAP Component 3 water governance in Balochistan.',
     url: 'https://anthropologyportfolio.vercel.app',
     type: 'website',
   },
@@ -60,8 +61,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'ProfessionalService',
-              name: 'Applied Anthropology & WebGIS Consulting',
-              description: 'Decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) Analytics, & Fiduciary Usufruct Ledger for Balochistan Water Infrastructure.',
+              name: 'MIRAB — IFRAP Component 3 Platform',
+              description: 'Decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, and a fiduciary customary-usufruct ledger for World Bank IFRAP Component 3 water governance in Balochistan.',
               url: 'https://anthropologyportfolio.vercel.app',
             }).replace(/</g, '\\u003c'),
           }}
@@ -88,7 +89,7 @@ export default function RootLayout({
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
                     <div>
                       <p className="font-semibold text-slate-200">
-                        Applied Anthropology Portfolio & M&E Telemetry
+                        MIRAB — IFRAP Component 3 Platform
                       </p>
                       <p className="mt-1">
                         Integrating Indigenous Technical Knowledge (ITK) & Senian Capability Deprivation Index for IFRAP Component 3.
