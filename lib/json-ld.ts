@@ -1,4 +1,7 @@
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://anthropologyportfolio.vercel.app';
+import { SITE_URL } from './site-config';
+
+// Re-exported so existing importers (e.g. app/telemetry/page.tsx) keep working.
+export { SITE_URL };
 
 export interface PersonSchema {
   '@type': string;
