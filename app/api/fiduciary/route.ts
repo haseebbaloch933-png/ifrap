@@ -6,6 +6,7 @@ import { getAll, transaction } from '@/lib/server/store';
 import { recordAudit, actorFromSession, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 import { guardMutation, capString, BODY_LIMITS, RATE_LIMITS } from '@/lib/server/api-guards';
 import { FIDUCIARY_COLLECTION as COLLECTION, USUFRUCT_SEED, type UsufructCertRecord } from '@/lib/fiduciary-ledger';
+import { sealFields, openFields } from '@/lib/server/field-crypto';
 
 // crypto + the file-backed store require the Node runtime (not Edge).
 export const runtime = 'nodejs';
@@ -13,7 +14,9 @@ export const dynamic = 'force-dynamic';
 
 const ROUTE = '/api/fiduciary';
 
-export type { UsufructCertRecord };
+// Beneficiary/clan identity encrypted at rest; certNumber/district/parcel stay
+// clear so the ledger stays listable and the uniqueness check still works.
+const SENSITIVE: (keyof UsufructCertRecord)[] = ['beneficiary', 'clan'];
 
 const ELEVATED = ['PROVINCIAL_PIU', 'FPMU_DIRECTOR'];
 
@@ -31,7 +34,11 @@ export async function GET() {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 403 });
     return NextResponse.json({ error: 'Unauthorized: Elevated privileges required' }, { status: 403 });
   }
-  const certificates = await getAll<UsufructCertRecord>(COLLECTION, USUFRUCT_SEED);
+  const stored = await getAll<UsufructCertRecord>(
+    COLLECTION,
+    USUFRUCT_SEED.map((c) => sealFields(c, SENSITIVE))
+  );
+  const certificates = stored.map((c) => openFields(c, SENSITIVE));
   await recordAudit({ actor: actorFromSession(session), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ count: certificates.length, certificates });
 }
@@ -67,7 +74,10 @@ export async function POST(request: Request) {
     // district on the same day — a real, non-negligible chance with only 9000
     // combinations) is caught and retried instead of silently landing two
     // different beneficiaries under the "same" certificate number.
-    const record = await transaction<UsufructCertRecord, UsufructCertRecord>(COLLECTION, USUFRUCT_SEED, (existing) => {
+    const record = await transaction<UsufructCertRecord, UsufructCertRecord>(
+      COLLECTION,
+      USUFRUCT_SEED.map((c) => sealFields(c, SENSITIVE)),
+      (existing) => {
       const existingIds = new Set(existing.map((c) => c.certNumber));
       let certNumber = '';
       for (let attempt = 0; attempt < 20; attempt++) {
@@ -98,8 +108,8 @@ export async function POST(request: Request) {
         hash,
         status: 'ACTIVE',
       };
-      existing.unshift(newRecord);
-      return newRecord;
+      existing.unshift(sealFields(newRecord, SENSITIVE)); // store sealed
+      return newRecord; // return cleartext to the caller
     });
 
     await recordAudit({ actor: actorFromSession(session), method: 'POST', route: ROUTE, action: 'ISSUE_CERT', status: 200, target: record.certNumber });

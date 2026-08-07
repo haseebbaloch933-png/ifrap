@@ -5,6 +5,7 @@ import { GRM_SEED, GrmTicketRecord, buildNewTicket, isValidStatus } from '@/lib/
 import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 import { scrubPayload } from '@/lib/privacy/ner-pii-scrubber';
 import { guardMutation, capString, BODY_LIMITS, RATE_LIMITS } from '@/lib/server/api-guards';
+import { sealFields, openFields } from '@/lib/server/field-crypto';
 
 const MAX_RESOLUTION_NOTES_LEN = 4000;
 
@@ -13,6 +14,16 @@ export const dynamic = 'force-dynamic';
 
 const COLLECTION = 'grm';
 const ROUTE = '/api/grm';
+
+// Person/free-text fields encrypted at rest; district/status/dates stay clear
+// so filtering, SLA math, and district counts still work without decrypting.
+const SENSITIVE: (keyof GrmTicketRecord)[] = ['description', 'submitterName', 'resolutionNotes'];
+
+// Seed sealed too, so the demo/seed tickets aren't the one plaintext gap when
+// encryption is enabled. Passthrough (clear) when no key is configured.
+function seed(): GrmTicketRecord[] {
+  return GRM_SEED.map((t) => sealFields(t, SENSITIVE));
+}
 
 async function requireAuth(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -27,7 +38,8 @@ export async function GET(req: NextRequest) {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
-  const tickets = await getAll<GrmTicketRecord>(COLLECTION, GRM_SEED);
+  const stored = await getAll<GrmTicketRecord>(COLLECTION, seed());
+  const tickets = stored.map((t) => openFields(t, SENSITIVE));
   await recordAudit({ actor: actorFromToken(token), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ tickets });
 }
@@ -52,14 +64,14 @@ export async function POST(req: NextRequest) {
   if (!body?.description || !String(body.description).trim()) {
     return NextResponse.json({ error: 'A ticket description is required' }, { status: 400 });
   }
-  const ticket = await transaction<GrmTicketRecord, GrmTicketRecord>(COLLECTION, GRM_SEED, (data) => {
+  const ticket = await transaction<GrmTicketRecord, GrmTicketRecord>(COLLECTION, seed(), (data) => {
     const t = buildNewTicket(body, data);
     // Grievance descriptions are free text and routinely embed PII (names,
     // CNICs, phone/email). Scrub before persisting so data at rest is redacted,
     // matching how /api/field-logs treats its payloads (ESS5/ESS10).
     t.description = scrubPayload(t.description);
-    data.unshift(t);
-    return t;
+    data.unshift(sealFields(t, SENSITIVE)); // store sealed
+    return t; // return cleartext to the caller
   });
   await recordAudit({ actor: actorFromToken(token), method: 'POST', route: ROUTE, action: 'CREATE', status: 201, target: ticket.id });
   return NextResponse.json({ ticket }, { status: 201 });
@@ -97,8 +109,10 @@ export async function PATCH(req: NextRequest) {
   // Drop undefined keys so we don't overwrite existing values with undefined.
   Object.keys(patch).forEach((k) => (patch as any)[k] === undefined && delete (patch as any)[k]);
 
-  const updated = await update<GrmTicketRecord>(COLLECTION, body.id, patch, GRM_SEED);
+  // Seal sensitive fields in the patch before it's merged into the stored record.
+  const sealedPatch = sealFields(patch as GrmTicketRecord, SENSITIVE);
+  const updated = await update<GrmTicketRecord>(COLLECTION, body.id, sealedPatch, seed());
   if (!updated) return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
   await recordAudit({ actor: actorFromToken(token), method: 'PATCH', route: ROUTE, action: 'UPDATE', status: 200, target: updated.id });
-  return NextResponse.json({ ticket: updated });
+  return NextResponse.json({ ticket: openFields(updated, SENSITIVE) });
 }

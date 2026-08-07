@@ -87,6 +87,13 @@ Browser ── Next.js App Router (app/) ── Edge proxy (RBAC gate)
   fiduciary, field-logs). Directors read it and its chain-integrity status at
   `/api/audit-log` and on the Admin dashboard; `npm run verify:audit` proves
   any edit/reorder/deletion of a past entry is detected.
+- **Encryption at rest** — `lib/server/field-crypto.ts` (AES-256-GCM) seals the
+  sensitive fields of records before they persist — grievance narratives +
+  complainant names, usufruct beneficiary/clan, field-log payloads — leaving
+  operational fields (district, status, id, dates) clear so listing/filtering
+  still work. Env-gated by `DATA_ENCRYPTION_KEY` (passthrough in dev, required
+  for real data). `npm run verify:crypto` proves round-trip, at-rest
+  unreadability, and fail-closed on tamper/wrong-key.
 - **Persistence** — `lib/server/store.ts` is a dispatcher behind a repository
   seam (`getAll/insert/update/transaction`). It selects the backend by env:
   - `DATABASE_URL` **unset** → file store (`lib/server/file-store.ts`) under the
@@ -169,7 +176,9 @@ These are scoping items, not bugs:
   tamper-evident log records every access to the sensitive routes (GRM,
   fiduciary, field-logs); Directors review it and its integrity status on the
   Admin dashboard, and `npm run verify:audit` proves tampering is detected.
-  Remaining ESS10 items: end-to-end encryption of grievance data, data
+  ~~end-to-end encryption of grievance data~~ **(at-rest implemented)** —
+  field-level AES-256-GCM via `DATA_ENCRYPTION_KEY` (`npm run verify:crypto`);
+  in-transit is standard TLS at deploy. Remaining ESS10 items: data
   classification & retention policy, and the DPIA itself.
 - **Government of Pakistan:** in-country data localization, Personal Data
   Protection alignment (lawful basis, consent, subject access, breach
