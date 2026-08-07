@@ -136,8 +136,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       grm: 'GRM Ledger',
       admin: 'Admin Console',
       systemOnline: 'System Online',
-      appTitle: 'AnthropoGIS',
-      appSubtitle: 'Applied Telemetry & WebGIS',
+      appTitle: 'MIRAB',
+      appSubtitle: 'IFRAP Component 3 Platform',
       skipToContent: 'Skip to main content',
     },
     map: {
@@ -257,8 +257,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       grm: 'شکایات کا ازالہ (GRM)',
       admin: 'ایڈمن پینل',
       systemOnline: 'سسٹم آن لائن',
-      appTitle: 'اینتھروپو جی آئی ایس',
-      appSubtitle: 'بلوچستان ویب جی آئی ایس اور ٹیلی میٹری',
+      appTitle: 'میراب',
+      appSubtitle: 'آئی ایف آر اے پی کمپوننٹ 3 پلیٹ فارم',
       skipToContent: 'بنیادی مواد پر جائیں',
     },
     map: {

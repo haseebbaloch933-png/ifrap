@@ -14,7 +14,7 @@ export default function HomePage() {
       <section className="text-center max-w-4xl mx-auto space-y-6">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold tracking-[0.2em] uppercase shadow-[0_0_15px_rgba(6,182,212,0.15)]">
           <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" aria-hidden="true" />
-          Applied Anthropology Portfolio & Research Telemetry
+          MIRAB · IFRAP Component 3 Platform
         </div>
 
         <h1 className="text-5xl sm:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">
@@ -203,7 +203,7 @@ export default function HomePage() {
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                 Traditional technocratic monitoring frequently erases customary rights and indigenous infrastructure 
-                by imposing top-down indicators. This portfolio demonstrates how applied anthropology integrates 
+                by imposing top-down indicators. This platform demonstrates how applied anthropology integrates
                 spatial WebGIS mapping with Senian capability metrics to safeguard water usufruct rights in arid environments.
               </p>
             </div>

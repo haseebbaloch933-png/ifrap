@@ -73,22 +73,22 @@ export interface WebSiteSchema {
 
 export function generatePersonSchema(siteUrl: string = SITE_URL): PersonSchema {
   return {
-    '@type': 'Person',
-    '@id': `${siteUrl}/#person`,
-    name: 'Applied Anthropologist Consultant',
-    jobTitle: 'Freelance Applied Anthropologist & WebGIS Specialist',
+    '@type': 'Organization',
+    '@id': `${siteUrl}/#programme`,
+    name: 'IFRAP Component 3 Programme (FPMU / PIU)',
+    jobTitle: 'Implementation, Safeguards & M&E Unit',
     description:
-      'Freelance applied anthropologist specializing in decolonial WebGIS, Senian Multidimensional Poverty Index analytics, and customary usufruct rights governance.',
+      'Provincial implementation unit operating the MIRAB platform for World Bank IFRAP Component 3 — Balochistan water governance, ESF safeguards, and monitoring & evaluation.',
     url: siteUrl,
     areaServed: 'Balochistan, Pakistan',
     knowAbout: [
-      'Applied Anthropology',
+      'Water Governance',
       'WebGIS',
       'M&E Telemetry',
       'Senian MPI',
       'Customary Usufruct Rights',
       'Indigenous Technical Knowledge',
-      'Participatory GIS',
+      'Grievance Redress Mechanism',
     ],
   };
 }
@@ -97,25 +97,25 @@ export function generateProfessionalServiceSchema(siteUrl: string = SITE_URL): P
   return {
     '@type': 'ProfessionalService',
     '@id': `${siteUrl}/#service`,
-    name: 'Applied Anthropology & WebGIS Consulting',
+    name: 'MIRAB — IFRAP Component 3 Platform',
     description:
-      'Freelance applied anthropology consulting, WebGIS mapping, Senian M&E telemetry, multidimensional poverty analytics, and customary usufruct rights governance.',
+      'Monitoring, governance and safeguards platform for World Bank IFRAP Component 3 (Balochistan water governance): field ethnography, Grievance Redress, customary usufruct certificates, decolonial WebGIS, ESF safeguard telemetry, and Senian MPI M&E.',
     url: siteUrl,
     areaServed: 'Balochistan, Pakistan',
     knowAbout: [
-      'Applied Anthropology',
+      'Water Governance',
       'Decolonial WebGIS',
       'Senian MPI Analytics',
       'Customary Usufruct Rights',
       'M&E Telemetry',
     ],
     provider: {
-      '@type': 'Person',
-      name: 'Applied Anthropologist Consultant',
+      '@type': 'Organization',
+      name: 'IFRAP Component 3 Programme (FPMU / PIU)',
     },
     offerCatalog: {
       '@type': 'OfferCatalog',
-      name: 'Applied Anthropology & Telemetry Consulting Services',
+      name: 'IFRAP Component 3 Platform Modules',
       itemListElement: [
         {
           '@type': 'OfferCatalogItem',
@@ -153,7 +153,7 @@ export function generateDatasetSchema(siteUrl: string = SITE_URL): DatasetSchema
   return {
     '@type': ['Dataset', 'Project'],
     '@id': `${siteUrl}/#dataset`,
-    name: 'Balochistan Karez WebGIS & M&E Telemetry Dashboard',
+    name: 'MIRAB — Balochistan Karez WebGIS & M&E Telemetry (IFRAP Component 3)',
     description:
       'Integrated spatial dataset, Senian MPI capability metrics, and customary usufruct rights telemetry for water resource management in Balochistan.',
     url: `${siteUrl}/telemetry`,
@@ -173,8 +173,8 @@ export function generateDatasetSchema(siteUrl: string = SITE_URL): DatasetSchema
       'Indigenous Technical Knowledge Layers',
     ],
     provider: {
-      '@type': 'ProfessionalService',
-      name: 'AnthropoGIS Consulting',
+      '@type': 'Organization',
+      name: 'IFRAP Component 3 Programme (FPMU / PIU)',
       url: siteUrl,
     },
   };
@@ -184,13 +184,13 @@ export function generateWebSiteSchema(siteUrl: string = SITE_URL): WebSiteSchema
   return {
     '@type': 'WebSite',
     '@id': `${siteUrl}/#website`,
-    name: 'AnthropoGIS',
+    name: 'MIRAB — IFRAP Component 3 Platform',
     url: siteUrl,
     description:
-      'Freelance applied anthropology consulting, WebGIS mapping, Senian M&E telemetry, multidimensional poverty analytics, and customary usufruct rights governance.',
+      'Official platform for World Bank IFRAP Component 3 (Balochistan water governance): decolonial WebGIS, Senian MPI M&E telemetry, Grievance Redress, and a customary-usufruct fiduciary ledger.',
     publisher: {
-      '@type': 'ProfessionalService',
-      name: 'AnthropoGIS Consulting',
+      '@type': 'Organization',
+      name: 'IFRAP Component 3 Programme (FPMU / PIU)',
     },
   };
 }
