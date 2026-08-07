@@ -8,6 +8,7 @@ import { RBACProvider } from '@/lib/rbac-context';
 import { AuthProvider } from '@/components/AuthProvider';
 import { NavbarHeader } from '@/components/NavbarHeader';
 import { PwaRegister } from '@/components/PwaRegister';
+import { SITE_URL } from '@/lib/site-config';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -36,11 +37,11 @@ export const metadata: Metadata = {
     'Telemetry Dashboard',
   ],
   authors: [{ name: 'IFRAP Component 3 Programme (FPMU / PIU)' }],
-  metadataBase: new URL('https://anthropologyportfolio.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     title: 'MIRAB — IFRAP Component 3 Platform',
     description: 'Decolonial spatial analytics and Senian capability metrics for World Bank IFRAP Component 3 water governance in Balochistan.',
-    url: 'https://anthropologyportfolio.vercel.app',
+    url: SITE_URL,
     type: 'website',
   },
 };
@@ -63,7 +64,7 @@ export default function RootLayout({
               '@type': 'ProfessionalService',
               name: 'MIRAB — IFRAP Component 3 Platform',
               description: 'Decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, and a fiduciary customary-usufruct ledger for World Bank IFRAP Component 3 water governance in Balochistan.',
-              url: 'https://anthropologyportfolio.vercel.app',
+              url: SITE_URL,
             }).replace(/</g, '\\u003c'),
           }}
         />
