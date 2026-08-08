@@ -9,6 +9,7 @@ import { RBACProvider } from '@/lib/rbac-context';
 import { AuthProvider } from '@/components/AuthProvider';
 import { NavbarHeader } from '@/components/NavbarHeader';
 import { PwaRegister } from '@/components/PwaRegister';
+import { Analytics } from '@vercel/analytics/next';
 import { SITE_URL } from '@/lib/site-config';
 
 const outfit = Outfit({
@@ -110,6 +111,7 @@ export default function RootLayout({
             </I18nProvider>
           </AccessibilityProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
