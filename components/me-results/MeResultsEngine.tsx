@@ -196,7 +196,7 @@ export function MeResultsEngine() {
       doc.text(`Disbursed Burn Rate: ${formatPKR(totalDisbursedBudgetPKR)} (${burnRatePercentage.toFixed(1)}%)`, 18, 49);
       doc.text(`Physical Works Progress: ${overallPhysicalProgress}%`, 110, 42);
 
-      // Table 1: Component 3 KPIs
+      // Table 1: programme KPIs
       const tableData = kpis.map(k => [
         k.id,
         k.indicator,
@@ -330,7 +330,7 @@ export function MeResultsEngine() {
         </GlassCard>
       </div>
 
-      {/* Section 1: Component 3 KPI Target Tracker */}
+      {/* Section 1: programme KPI Target Tracker */}
       <GlassCard className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>

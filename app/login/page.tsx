@@ -4,8 +4,17 @@ import { useState, useEffect } from 'react';
 import { signIn, getProviders } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
+import { IS_DEMO } from '@/lib/demo-mode';
 
-const showDemoAccounts = process.env.NODE_ENV !== 'production';
+// In demonstration mode the reviewer-facing deployment shows the demo accounts
+// and one-click role logins, so a reviewer is never stuck at the sign-in screen.
+const showDemoAccounts = IS_DEMO;
+
+const DEMO_ACCOUNTS: Array<{ label: string; email: string }> = [
+  { label: 'Field Enumerator', email: 'enumerator@ifrap.gov.pk' },
+  { label: 'Provincial PIU', email: 'piu@ifrap.gov.pk' },
+  { label: 'FPMU Director', email: 'director@ifrap.gov.pk' },
+];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -49,6 +58,19 @@ export default function LoginPage() {
 
     if (res?.error) {
       setError('Invalid email or password');
+      setIsLoading(false);
+    } else {
+      router.push('/telemetry');
+      router.refresh();
+    }
+  };
+
+  const demoLogin = async (demoEmail: string) => {
+    setIsLoading(true);
+    setError('');
+    const res = await signIn('credentials', { redirect: false, email: demoEmail, password: 'demo123' });
+    if (res?.error) {
+      setError('Demo sign-in failed');
       setIsLoading(false);
     } else {
       router.push('/telemetry');
@@ -176,12 +198,23 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t border-slate-800 text-xs text-slate-500 text-center">
             {showDemoAccounts ? (
               <>
-                <p>Demo Accounts:</p>
-                <ul className="mt-2 space-y-1">
-                  <li>enumerator@ifrap.gov.pk (pw: demo123)</li>
-                  <li>piu@ifrap.gov.pk (pw: demo123)</li>
-                  <li>director@ifrap.gov.pk (pw: demo123)</li>
-                </ul>
+                <p className="mb-2">Demonstration — one-click sign in as:</p>
+                {hasCredentials && (
+                  <div className="grid grid-cols-1 gap-2 mb-3">
+                    {DEMO_ACCOUNTS.map((a) => (
+                      <button
+                        key={a.email}
+                        type="button"
+                        disabled={isLoading}
+                        onClick={() => demoLogin(a.email)}
+                        className="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm font-medium transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                      >
+                        Enter as {a.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-slate-500">All demo accounts use password <code className="text-slate-400">demo123</code>. Synthetic data only.</p>
               </>
             ) : (
               <p>

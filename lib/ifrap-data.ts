@@ -1,5 +1,5 @@
 /**
- * IFRAP Component 3 Data Module: Balochistan Karez Rehabilitation & Community Water Management
+ * IFRAP Programme — Balochistan district demonstration dataset (synthetic M&E telemetry)
  * 
  * Represents district datasets for M&E Telemetry in Balochistan:
  * - Quetta
@@ -43,7 +43,7 @@ export const IFRAP_DISTRICTS: IFRAPDistrictData[] = [
     districtName: 'Quetta',
     province: 'Balochistan',
     component: 3,
-    componentName: 'IFRAP Component 3: Balochistan Karez Rehabilitation & Community Water Management',
+    componentName: 'IFRAP Programme · Balochistan (synthetic demonstration dataset)',
     coordinates: [66.975, 30.1798],
     population: 1001205,
     karezSystemsCount: 18,
@@ -108,7 +108,7 @@ export const IFRAP_DISTRICTS: IFRAPDistrictData[] = [
     districtName: 'Pishin',
     province: 'Balochistan',
     component: 3,
-    componentName: 'IFRAP Component 3: Balochistan Karez Rehabilitation & Community Water Management',
+    componentName: 'IFRAP Programme · Balochistan (synthetic demonstration dataset)',
     coordinates: [67.0, 30.58],
     population: 736481,
     karezSystemsCount: 24,
@@ -173,7 +173,7 @@ export const IFRAP_DISTRICTS: IFRAPDistrictData[] = [
     districtName: 'Mastung',
     province: 'Balochistan',
     component: 3,
-    componentName: 'IFRAP Component 3: Balochistan Karez Rehabilitation & Community Water Management',
+    componentName: 'IFRAP Programme · Balochistan (synthetic demonstration dataset)',
     coordinates: [66.84, 29.79],
     population: 266461,
     karezSystemsCount: 31,
@@ -238,7 +238,7 @@ export const IFRAP_DISTRICTS: IFRAPDistrictData[] = [
     districtName: 'Kalat',
     province: 'Balochistan',
     component: 3,
-    componentName: 'IFRAP Component 3: Balochistan Karez Rehabilitation & Community Water Management',
+    componentName: 'IFRAP Programme · Balochistan (synthetic demonstration dataset)',
     coordinates: [66.58, 29.03],
     population: 412232,
     karezSystemsCount: 22,
@@ -303,7 +303,7 @@ export const IFRAP_DISTRICTS: IFRAPDistrictData[] = [
     districtName: 'Zhob',
     province: 'Balochistan',
     component: 3,
-    componentName: 'IFRAP Component 3: Balochistan Karez Rehabilitation & Community Water Management',
+    componentName: 'IFRAP Programme · Balochistan (synthetic demonstration dataset)',
     coordinates: [69.45, 31.34],
     population: 310544,
     karezSystemsCount: 15,
@@ -368,7 +368,7 @@ export const IFRAP_DISTRICTS: IFRAPDistrictData[] = [
     districtName: 'Ziarat',
     province: 'Balochistan',
     component: 3,
-    componentName: 'IFRAP Component 3: Balochistan Karez Rehabilitation & Community Water Management',
+    componentName: 'IFRAP Programme · Balochistan (synthetic demonstration dataset)',
     coordinates: [67.72, 30.38],
     population: 160422,
     karezSystemsCount: 12,

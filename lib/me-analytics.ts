@@ -1,6 +1,6 @@
 /**
  * Monitoring & Evaluation (M&E) Analytics Data & Utility Module
- * Balochistan IFRAP Component 3 Telemetry Engine
+ * Balochistan IFRAP Programme Telemetry Engine
  */
 
 export interface DisplacedDistrictBreakdown {

@@ -10,6 +10,7 @@ import { AuthProvider } from '@/components/AuthProvider';
 import { NavbarHeader } from '@/components/NavbarHeader';
 import { PwaRegister } from '@/components/PwaRegister';
 import { SITE_URL } from '@/lib/site-config';
+import { IS_DEMO } from '@/lib/demo-mode';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -71,6 +72,11 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-500/30 selection:text-emerald-50">
+        {IS_DEMO && (
+          <div role="note" className="bg-amber-500/15 border-b border-amber-500/30 text-amber-200 text-center text-[11px] sm:text-xs py-1.5 px-4">
+            Demonstration environment — synthetic data only. Not for live beneficiary data.
+          </div>
+        )}
         <AuthProvider>
           <AccessibilityProvider>
             <I18nProvider>

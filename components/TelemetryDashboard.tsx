@@ -457,7 +457,7 @@ export function TelemetryDashboard() {
 
       </section>
 
-      {/* Real-time Animated Progress Bars bound to IFRAP Component 3 capability metrics */}
+      {/* Real-time Animated Progress Bars bound to IFRAP programme capability metrics */}
       <section aria-label="Programme Metrics" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

@@ -19,10 +19,12 @@
  * store in dev, Postgres in the pilot.
  */
 import { getAll, transaction } from '@/lib/server/store';
+import { IS_DEMO } from '@/lib/demo-mode';
 import {
   buildChainedEntry,
   verifyChain,
   type AuditEntry,
+  type AuditEntryFields,
   type AuditActor,
   type AuditAction,
   type AuditChainVerification,
@@ -54,6 +56,32 @@ export function actorFromSession(session: any): AuditActor {
 /** Anonymous actor for unauthenticated / denied attempts. */
 export const ANONYMOUS_ACTOR: AuditActor = { sub: 'anonymous', email: '', role: '' };
 
+/**
+ * Synthetic, VALID hash-chained seed so the Director's audit view is populated
+ * in the demo (empty otherwise). Built with the real buildChainedEntry so the
+ * chain verifies; live entries append onto its tip. See lib/demo-mode.ts.
+ */
+function buildDemoAuditSeed(): AuditEntry[] {
+  if (!IS_DEMO) return [];
+  const director: AuditActor = { sub: 'director@ifrap.gov.pk', email: 'director@ifrap.gov.pk', role: 'FPMU_DIRECTOR' };
+  const piu: AuditActor = { sub: 'piu@ifrap.gov.pk', email: 'piu@ifrap.gov.pk', role: 'PROVINCIAL_PIU' };
+  const enumr: AuditActor = { sub: 'enumerator@ifrap.gov.pk', email: 'enumerator@ifrap.gov.pk', role: 'FIELD_ENUMERATOR' };
+  const events: AuditEntryFields[] = [
+    { id: 'AUD-DEMO-1', at: '2026-08-01T07:05:10.000Z', actor: enumr, method: 'POST', route: '/api/field-logs', action: 'INGEST', status: 201, target: 'FL-DEMO-0001' },
+    { id: 'AUD-DEMO-2', at: '2026-08-02T13:05:20.000Z', actor: piu, method: 'POST', route: '/api/fiduciary', action: 'ISSUE_CERT', status: 200, target: 'IFRAP-QUE-5108' },
+    { id: 'AUD-DEMO-3', at: '2026-08-03T09:00:00.000Z', actor: piu, method: 'GET', route: '/api/grm', action: 'LIST', status: 200 },
+    { id: 'AUD-DEMO-4', at: '2026-08-04T11:30:00.000Z', actor: ANONYMOUS_ACTOR, method: 'GET', route: '/api/audit-log', action: 'DENIED', status: 401 },
+    { id: 'AUD-DEMO-5', at: '2026-08-05T15:45:00.000Z', actor: director, method: 'GET', route: '/api/audit-log', action: 'LIST', status: 200 },
+  ];
+  const chain: AuditEntry[] = []; // newest-first, matching the store
+  for (const fields of events) {
+    chain.unshift(buildChainedEntry(chain, fields));
+  }
+  return chain;
+}
+
+const DEMO_AUDIT_SEED = buildDemoAuditSeed();
+
 export interface RecordAuditInput {
   actor: AuditActor;
   method: string;
@@ -69,7 +97,7 @@ export interface RecordAuditInput {
  * The stored array is newest-first (store prepends).
  */
 export async function appendAuditEntry(input: RecordAuditInput): Promise<AuditEntry> {
-  return transaction<AuditEntry, AuditEntry>(COLLECTION, [], (data) => {
+  return transaction<AuditEntry, AuditEntry>(COLLECTION, DEMO_AUDIT_SEED, (data) => {
     const entry = buildChainedEntry(data, {
       id: `AUD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
       at: new Date().toISOString(),
@@ -104,11 +132,11 @@ export async function recordAudit(input: RecordAuditInput): Promise<void> {
 
 /** Recompute and verify the whole chain from the persisted entries. */
 export async function verifyAuditChain(): Promise<AuditChainVerification> {
-  const data = await getAll<AuditEntry>(COLLECTION, []);
+  const data = await getAll<AuditEntry>(COLLECTION, DEMO_AUDIT_SEED);
   return verifyChain(data);
 }
 
 /** Return all audit entries, newest-first (as stored). */
 export function getAuditEntries(): Promise<AuditEntry[]> {
-  return getAll<AuditEntry>(COLLECTION, []);
+  return getAll<AuditEntry>(COLLECTION, DEMO_AUDIT_SEED);
 }
