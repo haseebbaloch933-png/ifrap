@@ -22,7 +22,7 @@ test.describe('IFRAP — rendering', () => {
 
 test.describe('IFRAP — proxy/RBAC gate (unauthenticated)', () => {
   // Protected PAGE routes must redirect an unauthenticated visitor to /login.
-  for (const route of ['/telemetry', '/admin', '/grm', '/field-log']) {
+  for (const route of ['/telemetry', '/admin', '/grm', '/field-log', '/results-framework']) {
     test(`GET ${route} (page) redirects to /login`, async ({ page }) => {
       await page.goto(route);
       await expect(page).toHaveURL(/\/login/);

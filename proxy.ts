@@ -22,6 +22,7 @@ export const config = {
     '/grm/:path*',
     '/gis-impact/:path*',
     '/me-results/:path*',
+    '/results-framework/:path*',
     '/telemetry/:path*',
     '/usufruct/:path*',
     '/webgis/:path*',
