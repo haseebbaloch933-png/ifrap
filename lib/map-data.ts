@@ -1,5 +1,5 @@
 /**
- * Balochistan Archaeological & Decolonial Hydrology Map Data
+ * Balochistan Archaeological & Customary Hydrology Map Data
  * Provides spatial coordinates, technocratic metadata, and Indigenous Technical Knowledge (ITK) notes
  * for Karez water systems, ancient archaeological sites, and pastoral migration corridors.
  */

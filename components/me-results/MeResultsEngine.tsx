@@ -181,7 +181,7 @@ export function MeResultsEngine() {
       // Title & Header
       doc.setFontSize(18);
       doc.setTextColor(15, 23, 42);
-      doc.text('World Bank IFRAP Component 3 - M&E Results Report', 14, 20);
+      doc.text('World Bank IFRAP Programme - M&E Results Report', 14, 20);
 
       doc.setFontSize(10);
       doc.setTextColor(100, 116, 139);
@@ -192,7 +192,7 @@ export function MeResultsEngine() {
       doc.rect(14, 34, 182, 24, 'F');
       doc.setFontSize(10);
       doc.setTextColor(15, 23, 42);
-      doc.text(`Total Component 3 Budget: ${formatPKR(totalAllocatedBudgetPKR)}`, 18, 42);
+      doc.text(`Total Programme Budget: ${formatPKR(totalAllocatedBudgetPKR)}`, 18, 42);
       doc.text(`Disbursed Burn Rate: ${formatPKR(totalDisbursedBudgetPKR)} (${burnRatePercentage.toFixed(1)}%)`, 18, 49);
       doc.text(`Physical Works Progress: ${overallPhysicalProgress}%`, 110, 42);
 
@@ -336,7 +336,7 @@ export function MeResultsEngine() {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Target className="w-5 h-5 text-cyan-400" />
-              World Bank Component 3 Key Performance Indicator (KPI) Matrix
+              World Bank IFRAP Programme Key Performance Indicator (KPI) Matrix
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Live tracking of target vs actual achievements across infrastructure, social inclusion, and fiduciary milestones

@@ -155,7 +155,7 @@ export function UsufructGenerator() {
     doc.text('IFRAP Usufruct Rights Certificate', 105, 20, { align: 'center' });
     
     doc.setFontSize(12);
-    doc.text('World Bank IFRAP Component 3 - Balochistan', 105, 30, { align: 'center' });
+    doc.text('World Bank IFRAP Programme - Balochistan', 105, 30, { align: 'center' });
     doc.line(20, 35, 190, 35);
     
     doc.setFontSize(14);

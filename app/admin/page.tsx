@@ -6,8 +6,8 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard | IFRAP Component 3',
-  description: 'FPMU Director Admin Dashboard for World Bank IFRAP Component 3.',
+  title: 'Admin Dashboard | IFRAP Programme',
+  description: 'FPMU Director Admin Dashboard for World Bank IFRAP Programme.',
 };
 
 export default async function AdminPage() {

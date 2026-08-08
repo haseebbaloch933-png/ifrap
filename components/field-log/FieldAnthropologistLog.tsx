@@ -205,7 +205,7 @@ export function FieldAnthropologistLog() {
             Field Anthropologist <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">Qualitative Log</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Balochistan Qualitative Narrative Entry with Offline Storage, NER PII Redaction, and pgvector RAG Embedding Pipeline
+            Balochistan Qualitative Narrative Entry with Offline Storage, NER PII Redaction, and Evidence-Tagging (prototype)
           </p>
         </div>
 
@@ -287,7 +287,7 @@ export function FieldAnthropologistLog() {
           }`}
         >
           <Database className="w-4 h-4" />
-          <span>3. pgvector RAG Embedding</span>
+          <span>3. Evidence Tagging (prototype)</span>
           {vectorGenerated && (
             <span className="px-1.5 py-0.5 text-[10px] bg-emerald-500/30 text-emerald-300 rounded font-mono">
               1536d
@@ -558,10 +558,10 @@ export function FieldAnthropologistLog() {
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <Database className="w-5 h-5 text-blue-400" />
-                pgvector RAG Vector Store Embedding Integration
+                Evidence-Tagging Pipeline (prototype)
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Generates 1536-dimensional embedding vector for PostgreSQL pgvector cosine similarity search
+                Prototype: simulates a 1536-dimensional embedding for a future PostgreSQL pgvector cosine-similarity search
               </p>
             </div>
 
@@ -581,11 +581,11 @@ export function FieldAnthropologistLog() {
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                   <span>
-                    Vector indexed in database table <strong className="text-white">{vectorData.table}</strong> with HNSW cosine distance index (<code className="text-cyan-300">vector_cosine_ops</code>).
+                    Prototype: vector would be indexed in database table <strong className="text-white">{vectorData.table}</strong> with an HNSW cosine-distance index (<code className="text-cyan-300">vector_cosine_ops</code>) once pgvector is wired.
                   </span>
                 </div>
                 <span className="px-2.5 py-1 bg-emerald-900 border border-emerald-700 text-white font-bold text-[11px] rounded">
-                  INDEXED
+                  SIMULATED
                 </span>
               </div>
 
@@ -618,7 +618,7 @@ export function FieldAnthropologistLog() {
               <Database className="w-10 h-10 text-slate-600 mx-auto" />
               <p className="text-sm font-semibold text-slate-300">No Vector Embedding Generated Yet</p>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Click "Generate 1536d Vector" above to create an embedding payload for pgvector semantic search.
+                Click "Generate 1536d Vector" above to create a sample embedding payload (prototype for a future pgvector search).
               </p>
             </div>
           )}

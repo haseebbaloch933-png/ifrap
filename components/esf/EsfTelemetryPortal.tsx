@@ -132,10 +132,10 @@ const mockEssStandards: EssStandard[] = [
     status: 'COMPLIANT',
     riskLevel: 'MODERATE',
     complianceScore: 96.5,
-    description: 'Incorporating Indigenous Technical Knowledge (ITK) and tribal Mirab water masters.',
+    description: 'Incorporating traditional & customary knowledge and tribal Mirab water masters.',
     keyMitigation: 'Free, Prior, and Informed Consent (FPIC) documented across 120 tribal councils.',
     lastAudited: '2026-07-31',
-    responsibleUnit: 'Decolonial Applied Anthropology Unit',
+    responsibleUnit: 'Social Safeguards & M&E Unit',
   },
   {
     id: 'ess-8',

@@ -38,7 +38,7 @@ export function FinancialBurnRateWidget({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 space-y-1">
-            <span className="text-[10px] text-slate-400 uppercase font-sans">Total Allocation (IFRAP C3)</span>
+            <span className="text-[10px] text-slate-400 uppercase font-sans">Total Allocation (IFRAP)</span>
             <div className="text-xl font-bold text-emerald-400">{formatPKR(totalAllocatedPKR)}</div>
             <p className="text-[10px] text-slate-500 font-sans">{districtName} Grant Allocation</p>
           </div>

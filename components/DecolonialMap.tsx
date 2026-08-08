@@ -149,7 +149,7 @@ export function DecolonialMap({
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
               }`}
             >
-              {t.map?.decolonial || 'Decolonial ITK'}
+              {t.map?.decolonial || 'Customary Knowledge'}
             </button>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function DecolonialMap({
         <div className="text-[11px] text-slate-400 space-y-1 border-t border-slate-700 pt-2">
           <div>{t.map?.center || 'Center'}: <span className="font-mono text-slate-200">[{initialCenter[0]}, {initialCenter[1]}]</span></div>
           <div>{t.map?.zoomLevel || 'Zoom'}: <span className="font-mono text-slate-200">{zoom}</span></div>
-          <div>{t.map?.activeLayer || 'Active Layer'}: <span className="font-semibold text-blue-400">{activeLayer}</span></div>
+          <div>{t.map?.activeLayer || 'Active Layer'}: <span className="font-semibold text-blue-400">{activeLayer === 'Decolonial ITK Layer' ? (t.map?.decolonial || 'Customary Knowledge Layer') : (t.map?.technocratic || 'Technocratic Standard')}</span></div>
         </div>
 
         {selectedFeature && (

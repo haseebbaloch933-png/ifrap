@@ -68,7 +68,7 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-100">IFRAP Portal Login</h1>
-            <p className="text-sm text-slate-400 mt-2">Sign in to access the MIRAB — IFRAP Component 3 Platform</p>
+            <p className="text-sm text-slate-400 mt-2">Sign in to MIRAB — the IFRAP Operations & Results Backbone</p>
           </div>
 
           {ssoProvider && (

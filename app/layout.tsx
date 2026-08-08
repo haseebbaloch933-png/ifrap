@@ -17,13 +17,13 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'MIRAB — IFRAP Component 3 Water Governance & M&E Platform',
-  description: 'Official platform for World Bank IFRAP Component 3 (Balochistan water governance): decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, Grievance Redress, and a fiduciary customary-usufruct ledger.',
+  title: 'MIRAB — IFRAP Operations & Results Backbone',
+  description: 'Cross-cutting monitoring, results, and safeguards platform for the World Bank IFRAP programme (Balochistan): a participatory WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, Grievance Redress, and a customary-tenure fiduciary ledger.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'MIRAB · IFRAP C3',
+    title: 'MIRAB · IFRAP',
   },
   keywords: [
     'MIRAB',
@@ -31,16 +31,16 @@ export const metadata: Metadata = {
     'WebGIS',
     'Balochistan Karez',
     'Senian MPI',
-    'IFRAP Component 3',
-    'Indigenous Technical Knowledge',
+    'IFRAP Programme',
+    'Traditional & Customary Knowledge',
     'Usufruct Rights',
     'Telemetry Dashboard',
   ],
-  authors: [{ name: 'IFRAP Component 3 Programme (FPMU / PIU)' }],
+  authors: [{ name: 'IFRAP Programme (FPMU / PIU)' }],
   metadataBase: new URL(SITE_URL),
   openGraph: {
-    title: 'MIRAB — IFRAP Component 3 Platform',
-    description: 'Decolonial spatial analytics and Senian capability metrics for World Bank IFRAP Component 3 water governance in Balochistan.',
+    title: 'MIRAB — IFRAP Operations & Results Backbone',
+    description: 'Participatory spatial analytics and Senian capability metrics for the World Bank IFRAP programme in Balochistan.',
     url: SITE_URL,
     type: 'website',
   },
@@ -62,8 +62,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'ProfessionalService',
-              name: 'MIRAB — IFRAP Component 3 Platform',
-              description: 'Decolonial WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, and a fiduciary customary-usufruct ledger for World Bank IFRAP Component 3 water governance in Balochistan.',
+              name: 'MIRAB — IFRAP Operations & Results Backbone',
+              description: 'Participatory WebGIS, Senian Multidimensional Poverty Index (MPI) analytics, and a customary-tenure fiduciary ledger for the World Bank IFRAP programme in Balochistan.',
               url: SITE_URL,
             }).replace(/</g, '\\u003c'),
           }}
@@ -90,10 +90,10 @@ export default function RootLayout({
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
                     <div>
                       <p className="font-semibold text-slate-200">
-                        MIRAB — IFRAP Component 3 Platform
+                        MIRAB — IFRAP Operations & Results Backbone
                       </p>
                       <p className="mt-1">
-                        Integrating Indigenous Technical Knowledge (ITK) & Senian Capability Deprivation Index for IFRAP Component 3.
+                        Integrating traditional & customary knowledge and the Senian capability lens across IFRAP delivery.
                       </p>
                     </div>
                     <div className="flex items-center gap-4 text-slate-400">

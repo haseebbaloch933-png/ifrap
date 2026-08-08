@@ -1,6 +1,6 @@
 /**
  * Simulated Firebase SDK Module & Fiduciary Ledger Security Engine
- * For MIRAB — IFRAP Component 3 Platform (water governance & M&E telemetry)
+ * For MIRAB — IFRAP Operations & Results Backbone (monitoring, results & safeguards)
  */
 
 export interface LedgerLog {
