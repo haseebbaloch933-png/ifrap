@@ -88,23 +88,23 @@ export function buildAntigravityAgentGraph() {
     },
   });
 
-  workflow.addNode('analyzeQuery', analyzeQueryNode);
-  workflow.addNode('retrieveContext', retrieveContextNode);
-  workflow.addNode('evaluateEsfCompliance', evaluateEsfComplianceNode);
-  workflow.addNode('synthesizeResponse', synthesizeResponseNode);
+  // Chain the builder calls: each addNode() returns a graph type with the new
+  // node name added to the node-name union, so the subsequent addEdge() calls
+  // type-check against the real node names (START/END included). Calling these
+  // as separate statements discarded those augmented types, which is why the
+  // edges previously needed `@ts-ignore` + `as any`.
+  const graph = workflow
+    .addNode('analyzeQuery', analyzeQueryNode)
+    .addNode('retrieveContext', retrieveContextNode)
+    .addNode('evaluateEsfCompliance', evaluateEsfComplianceNode)
+    .addNode('synthesizeResponse', synthesizeResponseNode)
+    .addEdge(START, 'analyzeQuery')
+    .addEdge('analyzeQuery', 'retrieveContext')
+    .addEdge('retrieveContext', 'evaluateEsfCompliance')
+    .addEdge('evaluateEsfCompliance', 'synthesizeResponse')
+    .addEdge('synthesizeResponse', END);
 
-  // @ts-ignore
-  workflow.addEdge(START as any, 'analyzeQuery');
-  // @ts-ignore
-  workflow.addEdge('analyzeQuery' as any, 'retrieveContext');
-  // @ts-ignore
-  workflow.addEdge('retrieveContext' as any, 'evaluateEsfCompliance');
-  // @ts-ignore
-  workflow.addEdge('evaluateEsfCompliance' as any, 'synthesizeResponse');
-  // @ts-ignore
-  workflow.addEdge('synthesizeResponse', END as any);
-
-  return workflow.compile();
+  return graph.compile();
 }
 
 export async function runAntigravityAgent(input: {
