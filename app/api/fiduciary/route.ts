@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAll, transaction } from '@/lib/server/store';
 import { recordAudit, actorFromSession, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
+import { guardMutation, capString, BODY_LIMITS, RATE_LIMITS } from '@/lib/server/api-guards';
 
 // crypto + the file-backed store require the Node runtime (not Edge).
 export const runtime = 'nodejs';
@@ -55,7 +56,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized: Elevated privileges required' }, { status: 403 });
     }
 
-    const data = await request.json();
+    // Per-actor rate limit + body-size cap (T-03).
+    const guard = await guardMutation(request, {
+      actorId: String((session.user as any)?.id || session.user?.email || ''),
+      route: ROUTE,
+      limit: RATE_LIMITS.fiduciary,
+      maxBytes: BODY_LIMITS.fiduciary,
+    });
+    if (!guard.ok) return guard.response;
+    const data = guard.body;
 
     // Validate required fields
     if (!data.beneficiary || !data.district || !data.clan || !data.parcelId) {
@@ -91,12 +100,12 @@ export async function POST(request: Request) {
       const newRecord: UsufructCertRecord = {
         id: certNumber,
         certNumber,
-        beneficiary: String(data.beneficiary),
-        clan: String(data.clan),
-        district: String(data.district),
-        parcelId: String(data.parcelId),
-        areaHectares: Number(data.areaHectares),
-        customaryRightsType: String(data.customaryRightsType ?? 'INALIENABLE_USUFRUCT'),
+        beneficiary: capString(data.beneficiary, 200),
+        clan: capString(data.clan, 160),
+        district: capString(data.district, 160),
+        parcelId: capString(data.parcelId, 120),
+        areaHectares: Number.isFinite(Number(data.areaHectares)) ? Number(data.areaHectares) : 0,
+        customaryRightsType: capString(data.customaryRightsType ?? 'INALIENABLE_USUFRUCT', 120),
         issuedAt,
         hash,
         status: 'ACTIVE',

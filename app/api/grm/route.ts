@@ -4,6 +4,9 @@ import { getAll, transaction, update } from '@/lib/server/store';
 import { GRM_SEED, GrmTicketRecord, buildNewTicket, isValidStatus } from '@/lib/grm-data';
 import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 import { scrubPayload } from '@/lib/privacy/ner-pii-scrubber';
+import { guardMutation, capString, BODY_LIMITS, RATE_LIMITS } from '@/lib/server/api-guards';
+
+const MAX_RESOLUTION_NOTES_LEN = 4000;
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,12 +39,16 @@ export async function POST(req: NextRequest) {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'POST', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  // Per-actor rate limit + body-size cap (T-03).
+  const guard = await guardMutation(req, {
+    actorId: String(token.sub || token.email || ''),
+    route: ROUTE,
+    limit: RATE_LIMITS.grm,
+    maxBytes: BODY_LIMITS.grm,
+  });
+  if (!guard.ok) return guard.response;
+  const body = guard.body;
+
   if (!body?.description || !String(body.description).trim()) {
     return NextResponse.json({ error: 'A ticket description is required' }, { status: 400 });
   }
@@ -65,19 +72,26 @@ export async function PATCH(req: NextRequest) {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'PATCH', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  // Per-actor rate limit + body-size cap (T-03).
+  const guard = await guardMutation(req, {
+    actorId: String(token.sub || token.email || ''),
+    route: ROUTE,
+    limit: RATE_LIMITS.grm,
+    maxBytes: BODY_LIMITS.grm,
+  });
+  if (!guard.ok) return guard.response;
+  const body = guard.body;
+
   if (!body?.id) return NextResponse.json({ error: 'Ticket id is required' }, { status: 400 });
   if (!isValidStatus(body.status)) return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
 
   const patch: Partial<GrmTicketRecord> = {
     status: body.status,
-    // Resolution notes are staff-authored free text — scrub PII here too.
-    resolutionNotes: typeof body.resolutionNotes === 'string' ? scrubPayload(body.resolutionNotes) : undefined,
+    // Resolution notes are staff-authored free text — cap length, then scrub PII.
+    resolutionNotes:
+      typeof body.resolutionNotes === 'string'
+        ? scrubPayload(capString(body.resolutionNotes, MAX_RESOLUTION_NOTES_LEN))
+        : undefined,
     resolvedAt: body.status === 'RESOLVED' ? new Date().toISOString().replace('T', ' ').slice(0, 16) : undefined,
   };
   // Drop undefined keys so we don't overwrite existing values with undefined.
