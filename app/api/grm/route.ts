@@ -3,6 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { getAll, transaction, update } from '@/lib/server/store';
 import { GRM_SEED, GrmTicketRecord, buildNewTicket, isValidStatus } from '@/lib/grm-data';
 import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
+import { scrubPayload } from '@/lib/privacy/ner-pii-scrubber';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -46,6 +47,10 @@ export async function POST(req: NextRequest) {
   }
   const ticket = await transaction<GrmTicketRecord, GrmTicketRecord>(COLLECTION, GRM_SEED, (data) => {
     const t = buildNewTicket(body, data);
+    // Grievance descriptions are free text and routinely embed PII (names,
+    // CNICs, phone/email). Scrub before persisting so data at rest is redacted,
+    // matching how /api/field-logs treats its payloads (ESS5/ESS10).
+    t.description = scrubPayload(t.description);
     data.unshift(t);
     return t;
   });
@@ -71,7 +76,8 @@ export async function PATCH(req: NextRequest) {
 
   const patch: Partial<GrmTicketRecord> = {
     status: body.status,
-    resolutionNotes: typeof body.resolutionNotes === 'string' ? body.resolutionNotes : undefined,
+    // Resolution notes are staff-authored free text — scrub PII here too.
+    resolutionNotes: typeof body.resolutionNotes === 'string' ? scrubPayload(body.resolutionNotes) : undefined,
     resolvedAt: body.status === 'RESOLVED' ? new Date().toISOString().replace('T', ' ').slice(0, 16) : undefined,
   };
   // Drop undefined keys so we don't overwrite existing values with undefined.
