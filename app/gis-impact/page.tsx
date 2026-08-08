@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { GisImpactMapper } from '@/components/gis-impact/GisImpactMapper';
+import { GisImpactMapperLazy } from '@/components/gis-impact/GisImpactMapperLazy';
 
 export const metadata: Metadata = {
   title: 'GIS Impact Mapper | World Bank IFRAP Programme',
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function GisImpactPage() {
-  return <GisImpactMapper />;
+  return <GisImpactMapperLazy />;
 }
