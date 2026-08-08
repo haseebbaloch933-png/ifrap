@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { getAll, transaction } from '@/lib/server/store';
 import { recordAudit, actorFromSession, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 import { guardMutation, capString, BODY_LIMITS, RATE_LIMITS } from '@/lib/server/api-guards';
+import { IS_DEMO } from '@/lib/demo-mode';
 
 // crypto + the file-backed store require the Node runtime (not Edge).
 export const runtime = 'nodejs';
@@ -27,6 +28,25 @@ export interface UsufructCertRecord {
   status: 'ACTIVE';
 }
 
+/** Same canonical fingerprint the issuance path computes, reused for seeds. */
+function certHash(c: Pick<UsufructCertRecord, 'certNumber' | 'beneficiary' | 'parcelId' | 'areaHectares' | 'issuedAt'>): string {
+  return crypto
+    .createHash('sha256')
+    .update(`${c.certNumber}|${c.beneficiary}|${c.parcelId}|${c.areaHectares}|${c.issuedAt}`)
+    .digest('hex');
+}
+
+/** Synthetic certificates so the ledger is populated in the demo; empty otherwise. */
+const USUFRUCT_SEED: UsufructCertRecord[] = IS_DEMO
+  ? (
+      [
+        { certNumber: 'IFRAP-PIS-4821', beneficiary: 'Mir Jan Raisani', clan: 'Raisani', district: 'Pishin', parcelId: 'PSH-KZ-014', areaHectares: 2.4, customaryRightsType: 'INALIENABLE_USUFRUCT', issuedAt: '2026-07-22T10:15:00.000Z' },
+        { certNumber: 'IFRAP-MAS-3390', beneficiary: 'Bibi Bakhtawar', clan: 'Shahwani', district: 'Mastung', parcelId: 'MAS-AL-207', areaHectares: 1.1, customaryRightsType: 'CUSTOMARY_TRIBAL_COMMONS', issuedAt: '2026-07-28T08:40:00.000Z' },
+        { certNumber: 'IFRAP-QUE-5108', beneficiary: 'Malik Dost Muhammad', clan: 'Kakar', district: 'Quetta', parcelId: 'QUE-SL-051', areaHectares: 3.7, customaryRightsType: 'LINEAGE_ALLUVIAL_USUFRUCT', issuedAt: '2026-08-02T13:05:00.000Z' },
+      ] as Array<Omit<UsufructCertRecord, 'id' | 'hash' | 'status'>>
+    ).map((c) => ({ ...c, id: c.certNumber, hash: certHash(c), status: 'ACTIVE' as const }))
+  : [];
+
 const ELEVATED = ['PROVINCIAL_PIU', 'FPMU_DIRECTOR'];
 
 async function requireElevated() {
@@ -43,7 +63,7 @@ export async function GET() {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 403 });
     return NextResponse.json({ error: 'Unauthorized: Elevated privileges required' }, { status: 403 });
   }
-  const certificates = await getAll<UsufructCertRecord>(COLLECTION, []);
+  const certificates = await getAll<UsufructCertRecord>(COLLECTION, USUFRUCT_SEED);
   await recordAudit({ actor: actorFromSession(session), method: 'GET', route: ROUTE, action: 'LIST', status: 200 });
   return NextResponse.json({ count: certificates.length, certificates });
 }
@@ -79,7 +99,7 @@ export async function POST(request: Request) {
     // district on the same day — a real, non-negligible chance with only 9000
     // combinations) is caught and retried instead of silently landing two
     // different beneficiaries under the "same" certificate number.
-    const record = await transaction<UsufructCertRecord, UsufructCertRecord>(COLLECTION, [], (existing) => {
+    const record = await transaction<UsufructCertRecord, UsufructCertRecord>(COLLECTION, USUFRUCT_SEED, (existing) => {
       const existingIds = new Set(existing.map((c) => c.certNumber));
       let certNumber = '';
       for (let attempt = 0; attempt < 20; attempt++) {
