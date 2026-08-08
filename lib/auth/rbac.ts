@@ -15,6 +15,7 @@ export const PROTECTED_ROUTES: Array<{ path: string; allowedRoles: Role[] }> = [
   { path: '/grm', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/gis-impact', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/me-results', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
+  { path: '/results-framework', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/telemetry', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/usufruct', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },
   { path: '/webgis', allowedRoles: ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'] },

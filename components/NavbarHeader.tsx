@@ -44,6 +44,7 @@ export function NavbarHeader() {
     { href: '/grm', label: 'GRM Center', mobileLabel: 'GRM Ticketing Center', title: 'Grievance Redress Mechanism (GRM) — log and track community complaints' },
     { href: '/gis-impact', label: 'GIS Mapper', mobileLabel: 'GIS Impact Mapper', title: 'Geographic Information System (GIS) — water infrastructure impact map' },
     { href: '/me-results', label: 'M&E Engine', mobileLabel: 'M&E Results Engine', title: 'Monitoring & Evaluation (M&E) — results and analytics dashboard' },
+    { href: '/results-framework', label: 'Results Framework', mobileLabel: 'Results Framework (Draft)', title: 'World Bank IPF Results Framework — PDO & intermediate indicators (draft scaffold pending official PAD RF)' },
     { href: '/admin', label: t.nav.admin, mobileLabel: t.nav.admin, title: 'Administrator console — manage users, roles, and settings', roles: ['FPMU_DIRECTOR'] },
   ];
 
