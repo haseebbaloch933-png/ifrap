@@ -84,15 +84,47 @@ export function hasRole(userRole: string | undefined | null, requiredRoles: Role
 }
 
 /**
- * Maps email to canonical platform role if role claim is missing.
+ * Fallback role resolution from a verified email address, used ONLY when the
+ * IdP provides no usable role claim (see lib/auth.ts::resolveRoleFromProfile).
+ *
+ * SECURITY: this must never *infer* elevation from the text of an email. A
+ * substring like "director" or "admin" in a local part is not proof of
+ * privilege — e.g. `admin.assistant@…`, `administration@…`, or a display-name
+ * address `firstname.director@…` would all have been silently elevated to
+ * FPMU_DIRECTOR by the previous substring match. That was a privilege-
+ * escalation bug (T-01).
+ *
+ * Elevation now happens only for addresses on an explicit, operator-controlled
+ * allowlist; every other address defaults to the LEAST-privileged role.
+ * Configure the allowlist with ROLE_EMAIL_ALLOWLIST — a comma-separated list
+ * of `email:ROLE` pairs (exact, case-insensitive email match), e.g.
+ *   ROLE_EMAIL_ALLOWLIST="dir@fpmu.gov.pk:FPMU_DIRECTOR,piu@balochistan.gov.pk:PROVINCIAL_PIU"
+ * Unrecognized roles are ignored. The real production path is an IdP role
+ * claim (OIDC_ROLE_CLAIM); this allowlist is the controlled break-glass for
+ * deployments whose IdP does not yet emit one.
  */
 export function mapUserEmailToRole(email: string): Role {
-  const lower = email.toLowerCase();
-  if (lower.includes('director') || lower.includes('admin')) {
-    return 'FPMU_DIRECTOR';
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (normalizedEmail) {
+    const allowlisted = parseRoleEmailAllowlist(process.env.ROLE_EMAIL_ALLOWLIST).get(normalizedEmail);
+    if (allowlisted) return allowlisted;
   }
-  if (lower.includes('piu') || lower.includes('provincial')) {
-    return 'PROVINCIAL_PIU';
+  return 'FIELD_ENUMERATOR'; // least privilege — never elevate on unrecognized input
+}
+
+/** Parse ROLE_EMAIL_ALLOWLIST ("email:ROLE,email:ROLE") into a lookup map. */
+function parseRoleEmailAllowlist(raw: string | undefined): Map<string, Role> {
+  const map = new Map<string, Role>();
+  if (!raw) return map;
+  const validRoles: Role[] = ['FIELD_ENUMERATOR', 'PROVINCIAL_PIU', 'FPMU_DIRECTOR'];
+  for (const entry of raw.split(',')) {
+    const sep = entry.lastIndexOf(':');
+    if (sep < 0) continue;
+    const emailPart = entry.slice(0, sep).trim().toLowerCase();
+    const rolePart = entry.slice(sep + 1).trim().toUpperCase().replace(/[\s-]+/g, '_');
+    if (emailPart && (validRoles as string[]).includes(rolePart)) {
+      map.set(emailPart, rolePart as Role);
+    }
   }
-  return 'FIELD_ENUMERATOR';
+  return map;
 }
