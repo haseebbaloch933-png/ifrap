@@ -143,7 +143,7 @@ export function AdminDashboard() {
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       <header className="mb-8">
         <h1 className="text-3xl font-black text-white tracking-tight">System <span className="text-violet-400">Admin Dashboard</span></h1>
-        <p className="text-sm text-slate-400 mt-2">IFRAP Component 3 • FPMU Director Overview</p>
+        <p className="text-sm text-slate-400 mt-2">IFRAP Programme • FPMU Director Overview</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

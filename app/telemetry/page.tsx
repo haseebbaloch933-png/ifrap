@@ -6,7 +6,7 @@ import { generateDatasetSchema, SITE_URL } from '@/lib/json-ld';
 export const metadata: Metadata = {
   title: 'M&E Telemetry Dashboard | Senian MPI Analytics & Balochistan IFRAP',
   description:
-    'Real-time Monitoring & Evaluation telemetry dashboard evaluating Senian Multidimensional Poverty Index (MPI = H x A) and capability deprivations across Balochistan IFRAP Component 3 water infrastructure.',
+    'Real-time Monitoring & Evaluation telemetry dashboard evaluating Senian Multidimensional Poverty Index (MPI = H x A) and capability deprivations across Balochistan IFRAP Programme water infrastructure.',
   keywords: [
     'M&E Telemetry',
     'Senian MPI',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'M&E Telemetry Dashboard | Senian MPI Analytics',
-    description: 'Real-time Senian Multidimensional Poverty Index & IFRAP Component 3 Telemetry Engine',
+    description: 'Real-time Senian Multidimensional Poverty Index & IFRAP Programme Telemetry Engine',
     type: 'website',
     url: `${SITE_URL}/telemetry`,
   },

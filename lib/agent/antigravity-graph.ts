@@ -1,8 +1,9 @@
 /**
- * LangGraph Antigravity Agent Orchestration Graph
- * World Bank Component 3 Anthropological Monitoring Platform
- * 
- * Multi-node agent state graph for query analysis, pgvector semantic RAG retrieval,
+ * IFRAP Safeguards Decision-Support Graph (rule-based orchestration)
+ * Part of MIRAB — the IFRAP Operations & Results Backbone
+ *
+ * Multi-node state graph for query analysis, lexical evidence retrieval
+ * (see lib/rag/retriever.ts — not a live embedding/vector model in this build),
  * ESF safeguard compliance evaluation, and response synthesis.
  */
 
@@ -64,11 +65,11 @@ async function synthesizeResponseNode(state: AgentState): Promise<Partial<AgentS
   const esf = state.esfSafeguardContext;
   const docSummary = docs.map((d) => `- [${d.title}] ${d.contentSummary}`).join('\n');
 
-  let answer = `### Antigravity Anthropological Monitoring Agent Analysis\n\n`;
+  let answer = `### IFRAP Safeguards Decision-Support Analysis\n\n`;
   answer += `**Query:** ${state.query}\n\n`;
-  answer += docs.length > 0 ? `**Retrieved Anthropological Field Evidence (pgvector RAG):**\n${docSummary}\n\n` : `**Retrieved Anthropological Field Evidence:** No direct semantic vector matches found above threshold 0.65.\n\n`;
+  answer += docs.length > 0 ? `**Retrieved Field Evidence (lexical retrieval):**\n${docSummary}\n\n` : `**Retrieved Field Evidence:** No field evidence matched above the relevance threshold (0.65).\n\n`;
   answer += esf && esf.flaggedRisks.length > 0 ? `**ESF Safeguards Assessment:** Status - ${esf.complianceStatus}\n` + esf.flaggedRisks.map((r) => `  * ${r}`).join('\n') + '\n\n' : `**ESF Safeguards Assessment:** Status - COMPLIANT (ESS1-ESS10 requirements satisfied)\n\n`;
-  answer += `*Generated under World Bank IFRAP Component 3 Fiduciary Protocol.*`;
+  answer += `*Generated under the World Bank IFRAP Programme Fiduciary Protocol.*`;
 
   return { finalAnswer: answer, step: 'COMPLETED' };
 }

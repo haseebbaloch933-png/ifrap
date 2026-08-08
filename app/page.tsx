@@ -14,11 +14,11 @@ export default function HomePage() {
       <section className="text-center max-w-4xl mx-auto space-y-6">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold tracking-[0.2em] uppercase shadow-[0_0_15px_rgba(6,182,212,0.15)]">
           <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" aria-hidden="true" />
-          MIRAB · IFRAP Component 3 Platform
+          MIRAB · IFRAP Operations & Results Backbone
         </div>
 
         <h1 className="text-5xl sm:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">
-          Decolonial WebGIS &{' '}
+          Participatory WebGIS &{' '}
           <span className="bg-gradient-to-r from-cyan-400 via-emerald-300 to-violet-400 bg-clip-text text-transparent animate-gradient-x">
             M&E Telemetry
           </span>
@@ -26,7 +26,7 @@ export default function HomePage() {
 
         <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto font-normal">
           Bridging customary water governance in Balochistan with quantitative monitoring. 
-          Integrating Indigenous Technical Knowledge (ITK) Karez spatial layers, Senian Multidimensional 
+          Integrating traditional & customary knowledge (Karez) spatial layers, Senian Multidimensional
           Poverty Index capability metrics (MPI = H × A), and Usufruct fiduciary land rights protection.
         </p>
 
@@ -74,9 +74,9 @@ export default function HomePage() {
 
         <GlassCard glowColor="amber" animate delay={0.4} hoverEffect={false}>
           <div className="text-center space-y-1">
-            <span className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono">IFRAP C3</span>
-            <p className="text-xs sm:text-sm font-medium text-slate-300">Water Infrastructure</p>
-            <p className="text-[11px] text-slate-400">M&E Component Tracked</p>
+            <span className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono">IFRAP</span>
+            <p className="text-xs sm:text-sm font-medium text-slate-300">Programme Delivery</p>
+            <p className="text-[11px] text-slate-400">Results & M&E Tracked</p>
           </div>
         </GlassCard>
       </section>
@@ -141,7 +141,7 @@ export default function HomePage() {
                   </h3>
                   <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                     Quantitative Monitoring & Evaluation dashboard calculating Amartya Sen&apos;s Multidimensional 
-                    Poverty Index (MPI = H × A). Tracks capability deprivation across IFRAP Component 3 water projects.
+                    Poverty Index (MPI = H × A). Tracks capability deprivation across the IFRAP programme.
                   </p>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function HomePage() {
               <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs">
                 <div className="flex gap-2">
                   <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">MPI H×A</span>
-                  <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">IFRAP C3</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">IFRAP</span>
                 </div>
                 <span className="text-emerald-400 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                   View Metrics &rarr;
@@ -199,7 +199,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
             <div className="lg:col-span-2 space-y-3">
               <h3 className="text-lg sm:text-xl font-semibold text-slate-200">
-                Methodological Note: Applied Anthropology & Decolonial M&E
+                Methodological Note: Participatory, Locally-Led Applied M&E
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                 Traditional technocratic monitoring frequently erases customary rights and indigenous infrastructure 
@@ -218,8 +218,8 @@ export default function HomePage() {
                   <span className="text-emerald-400">Sen (1999) MPI</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-400">Project Unit:</span>
-                  <span className="text-violet-400">IFRAP Component 3</span>
+                  <span className="text-slate-400">Programme:</span>
+                  <span className="text-violet-400">IFRAP (Balochistan)</span>
                 </div>
               </div>
             </div>

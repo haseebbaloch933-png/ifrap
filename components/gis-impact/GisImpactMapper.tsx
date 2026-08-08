@@ -236,7 +236,7 @@ export function GisImpactMapper() {
             GIS Impact <span className="bg-gradient-to-r from-cyan-400 via-emerald-400 to-blue-400 bg-clip-text text-transparent">Mapper</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            World Bank Component 3 WebGIS: 2022 Flood Extents, Karez Buffers, Infrastructure Sites & ESF Risk Hotspots
+            World Bank IFRAP Programme WebGIS: 2022 Flood Extents, Karez Buffers, Infrastructure Sites & ESF Risk Hotspots
           </p>
         </div>
 
