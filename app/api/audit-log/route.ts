@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // The access/audit log is itself sensitive (it names who touched what), so it
 // is Director-only — stricter than the sensitive routes it records. Also gated
-// at the edge via PROTECTED_ROUTES + the middleware matcher.
+// at the edge via PROTECTED_ROUTES + the proxy matcher.
 export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token || String(token.role) !== 'FPMU_DIRECTOR') {

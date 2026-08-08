@@ -1,6 +1,7 @@
 /**
- * Drift guard for H2: asserts the Edge middleware `config.matcher` covers every
+ * Drift guard for H2: asserts the Edge proxy `config.matcher` covers every
  * protected path declared in PROTECTED_ROUTES (lib/auth/rbac.ts).
+ * (Next 16 renamed the "middleware" file/function convention to "proxy".)
  *
  * Next.js requires `matcher` to be a static literal, so it cannot be derived
  * from PROTECTED_ROUTES at runtime — the two are maintained by hand and can
@@ -15,9 +16,9 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 
 function readMatcherPaths() {
-  const src = fs.readFileSync(path.join(root, 'middleware.ts'), 'utf-8');
+  const src = fs.readFileSync(path.join(root, 'proxy.ts'), 'utf-8');
   const block = src.match(/matcher:\s*\[([\s\S]*?)\]/);
-  if (!block) throw new Error('Could not find `matcher: [...]` in middleware.ts');
+  if (!block) throw new Error('Could not find `matcher: [...]` in proxy.ts');
   const entries = [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
   // Normalize '/telemetry/:path*' -> '/telemetry'
   return entries.map((e) => e.replace(/\/:path\*$/, '').replace(/\/$/, '') || '/');
@@ -43,9 +44,9 @@ function run() {
   const missing = protectedPaths.filter((p) => !isCovered(p, matcherPaths));
 
   if (missing.length > 0) {
-    console.error('✗ middleware matcher does NOT cover protected routes:');
-    missing.forEach((p) => console.error(`    - ${p} (declared in PROTECTED_ROUTES, absent from middleware.ts matcher)`));
-    console.error('  Add matching `<path>/:path*` entries to middleware.ts config.matcher.');
+    console.error('✗ proxy matcher does NOT cover protected routes:');
+    missing.forEach((p) => console.error(`    - ${p} (declared in PROTECTED_ROUTES, absent from proxy.ts matcher)`));
+    console.error('  Add matching `<path>/:path*` entries to proxy.ts config.matcher.');
     process.exit(1);
   }
 
