@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node tests/run-tests.js",
+    "test:e2e": "playwright test",
     "verify:store": "node --experimental-strip-types scripts/verify-store.mjs",
     "verify:pii": "node --experimental-strip-types scripts/verify-pii-scrubber.mjs",
     "verify:audit": "node --experimental-strip-types scripts/verify-audit-log.mjs"
@@ -29,6 +30,7 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20.17.0",
     "@types/pg": "^8.20.3",
     "@types/react": "^18.3.12",
