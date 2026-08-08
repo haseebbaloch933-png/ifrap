@@ -1,8 +1,27 @@
 'use client';
 
 import React from 'react';
-import { DecolonialMap } from '@/components/DecolonialMap';
+import dynamic from 'next/dynamic';
 import { GlassCard } from '@/components/GlassCard';
+
+// Lazy-load the MapLibre map: keeps maplibre-gl and the Balochistan map dataset
+// (lib/map-data.ts) out of this route's initial bundle and off the server
+// render (the map is browser-only). It loads on demand with a placeholder.
+const DecolonialMap = dynamic(
+  () => import('@/components/DecolonialMap').then((m) => m.DecolonialMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex items-center justify-center min-h-[420px] rounded-xl bg-slate-900/60 border border-white/10 text-slate-400 text-sm"
+        role="status"
+        aria-live="polite"
+      >
+        Loading interactive map…
+      </div>
+    ),
+  }
+);
 
 export default function WebGISPage() {
   return (

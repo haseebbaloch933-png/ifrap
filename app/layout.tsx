@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Outfit } from 'next/font/google';
 import './globals.css';
-import 'maplibre-gl/dist/maplibre-gl.css';
+// maplibre-gl CSS is imported inside the map components (DecolonialMap,
+// GisImpactMapper) so it ships in their lazy-loaded chunks, not the global CSS.
 import { AccessibilityProvider } from '@/lib/accessibility-context';
 import { I18nProvider } from '@/lib/i18n-context';
 import { RBACProvider } from '@/lib/rbac-context';
