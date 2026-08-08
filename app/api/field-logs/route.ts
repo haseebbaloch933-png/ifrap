@@ -3,6 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import { getAll, insert } from '@/lib/server/store';
 import { scrubPayload, getScrubAudit } from '@/lib/privacy/ner-pii-scrubber';
 import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
+import { guardMutation, BODY_LIMITS, RATE_LIMITS } from '@/lib/server/api-guards';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -45,13 +46,18 @@ export async function POST(req: NextRequest) {
     await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'POST', route: ROUTE, action: 'DENIED', status: 401 });
     return NextResponse.json({ error: 'Unauthorized: valid session required' }, { status: 401 });
   }
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
-  if (!body || typeof body !== 'object') {
+  // Per-actor rate limit + body-size cap (T-03). Field logs allow a larger body
+  // than other routes (narratives + geo), still bounded.
+  const guard = await guardMutation(req, {
+    actorId: String(token.sub || token.email || ''),
+    route: ROUTE,
+    limit: RATE_LIMITS.fieldLogs,
+    maxBytes: BODY_LIMITS.fieldLogs,
+  });
+  if (!guard.ok) return guard.response;
+  const body = guard.body;
+
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return NextResponse.json({ error: 'Field log payload required' }, { status: 400 });
   }
 

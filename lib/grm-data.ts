@@ -110,12 +110,12 @@ export function buildNewTicket(input: any, existing: GrmTicketRecord[]): GrmTick
   const priority = PRIORITIES.includes(input?.priority) ? input.priority : 'MEDIUM';
   return {
     id: `GRM-2026-${String(nextNum).padStart(3, '0')}`,
-    district: typeof input?.district === 'string' && input.district.trim() ? input.district : 'Unknown',
+    district: typeof input?.district === 'string' && input.district.trim() ? input.district.slice(0, 160) : 'Unknown',
     category: category as GrmTicketRecord['category'],
     status: 'OPEN',
     priority: priority as GrmTicketRecord['priority'],
     submittedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
-    submitterName: typeof input?.submitterName === 'string' && input.submitterName.trim() ? input.submitterName : 'Anonymous Submitter',
+    submitterName: typeof input?.submitterName === 'string' && input.submitterName.trim() ? input.submitterName.slice(0, 200) : 'Anonymous Submitter',
     description: String(input?.description ?? '').slice(0, 2000),
     resolutionNotes: '',
     slaCompliant: true,
