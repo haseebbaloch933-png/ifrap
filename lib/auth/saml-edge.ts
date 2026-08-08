@@ -188,7 +188,7 @@ export async function verifyAndDecodeSAMLOrOIDCToken(token: string): Promise<Use
   // "director" → FPMU_DIRECTOR) — a complete auth bypass. It has been removed.
   //
   // SECURITY: parseOIDCToken/parseSAMLAssertion above do NOT verify signatures.
-  // The live request path authenticates via NextAuth `getToken` (middleware.ts,
+  // The live request path authenticates via NextAuth `getToken` (proxy.ts,
   // app/api/agent/route.ts), which cryptographically verifies the session JWT.
   // These parsers must not be used for authorization without adding real
   // IdP signature verification (JWKS for OIDC, XML-DSig for SAML).

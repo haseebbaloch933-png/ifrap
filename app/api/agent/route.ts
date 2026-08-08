@@ -10,7 +10,7 @@ const ROUTE = '/api/agent';
 
 export async function POST(req: NextRequest) {
   try {
-    // Cryptographically verify the NextAuth session token (see middleware.ts).
+    // Cryptographically verify the NextAuth session token (see proxy.ts).
     const claims = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (!claims || !claims.role) {
       // The agent retrieves field-log-derived evidence, so denied attempts are

@@ -3,6 +3,9 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { isPublicPath, isProtectedRoute, getRequiredRolesForPath, hasRole } from '@/lib/auth/rbac';
 
+// This is the Next.js "proxy" convention (Next 16 renamed the former
+// "middleware" file/function to "proxy"; behaviour is identical).
+//
 // IMPORTANT: keep this list in sync with the protected entries in
 // PROTECTED_ROUTES (lib/auth/rbac.ts). Next.js requires the matcher to be a
 // static literal, so it cannot be derived from PROTECTED_ROUTES at runtime; the
@@ -33,7 +36,7 @@ export const config = {
   ],
 };
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public routes explicitly

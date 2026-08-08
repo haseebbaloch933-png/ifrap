@@ -233,15 +233,16 @@ const tests = [
     }
   },
   {
-    name: 'TC-T4-11: R1 Verification - Next.js Middleware Session Guard & Postgres Persistence Seam',
+    name: 'TC-T4-11: R1 Verification - Next.js Proxy Session Guard & Postgres Persistence Seam',
     run: () => {
       const { assertFileExists, assertContains } = require('../utils/ast-helpers');
-      assertFileExists('middleware.ts');
+      // Next 16 renamed the "middleware" file convention to "proxy".
+      assertFileExists('proxy.ts');
       assertFileExists('lib/auth/rbac.ts');
       // Security fix (audit C1): edge gate verifies the session via getToken;
       // the verifyAndDecodeSAMLOrOIDCToken bypass was removed. Guard the secure contract.
-      assertContains('middleware.ts', 'getToken');
-      assertContains('middleware.ts', 'getRequiredRolesForPath');
+      assertContains('proxy.ts', 'getToken');
+      assertContains('proxy.ts', 'getRequiredRolesForPath');
       assertContains('lib/auth/rbac.ts', 'FIELD_ENUMERATOR');
       assertContains('lib/auth/rbac.ts', 'PROVINCIAL_PIU');
       assertContains('lib/auth/rbac.ts', 'FPMU_DIRECTOR');

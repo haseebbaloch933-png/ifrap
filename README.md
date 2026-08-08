@@ -53,7 +53,7 @@ for all three is `demo123`.
 | `npm run lint` | Next.js lint |
 | `npm test` | E2E/contract test suite (`tests/run-tests.js`) |
 
-Run the middleware/RBAC drift guard directly:
+Run the proxy/RBAC drift guard directly:
 
 ```bash
 node tests/matcher-coverage.test.js
@@ -64,7 +64,7 @@ node tests/matcher-coverage.test.js
 ## Architecture
 
 ```
-Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
+Browser ── Next.js App Router (app/) ── Edge proxy (RBAC gate)
                     │
                     ├── API routes (app/api/*)  ── lib/server/store.ts
                     │     grm · field-logs · fiduciary · export · agent   (→ .data/*.json)
@@ -77,10 +77,11 @@ Browser ── Next.js App Router (app/) ── Edge middleware (RBAC gate)
   Connect identity provider (the FPMU/GoP IdP); leave them unset for the demo
   email/password login. In production, configuring SSO removes the demo
   password provider entirely. Roles come from a configurable IdP claim
-  (default `role`), falling back to email-pattern mapping and ultimately the
-  least-privileged role. `middleware.ts` verifies the session with `getToken`
-  and enforces `PROTECTED_ROUTES` from `lib/auth/rbac.ts`; the two must stay in
-  sync (`tests/matcher-coverage.test.js` fails if they drift).
+  (default `role`), falling back to an explicit email allowlist
+  (`ROLE_EMAIL_ALLOWLIST`) and ultimately the least-privileged role.
+  `proxy.ts` (Next 16's renamed middleware convention) verifies the session
+  with `getToken` and enforces `PROTECTED_ROUTES` from `lib/auth/rbac.ts`; the
+  two must stay in sync (`tests/matcher-coverage.test.js` fails if they drift).
 - **Audit log** — `lib/server/audit-log.ts` records a hash-chained,
   tamper-evident entry for every access to the sensitive routes (GRM,
   fiduciary, field-logs). Directors read it and its chain-integrity status at
@@ -214,7 +215,7 @@ lib/
   server/store.ts   persistence seam dispatcher (file-store | pg-store by DATABASE_URL)
   privacy/          PII scrubber
   agent/ · rag/     LangGraph agent + lexical retriever (template-based)
-middleware.ts       Edge RBAC gate (keep matcher in sync with rbac.ts)
+proxy.ts            Edge RBAC gate (keep matcher in sync with rbac.ts)
 db/                 SQL applied to db-postgis on first init (docker-entrypoint-initdb.d)
 tests/              E2E/contract suite + matcher drift guard
 docker-compose.yml  Frontend + Postgres/PostGIS/pgvector database
