@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-export const dynamic = 'force-dynamic';
+import { getToken } from 'next-auth/jwt';
 import { IFRAP_DISTRICTS } from '@/lib/ifrap-data';
 import { getLocationsGeoJSON, getRoutesGeoJSON } from '@/lib/map-data';
-import { store, sanitizeQueryParam, validateFilePath } from '@/lib/firebase-sim';
+import { sanitizeQueryParam, validateFilePath } from '@/lib/firebase-sim';
+import { getAll } from '@/lib/server/store';
+import { FIDUCIARY_COLLECTION, USUFRUCT_SEED, type UsufructCertRecord } from '@/lib/fiduciary-ledger';
+import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
 import {
   MOCK_ME_ANALYTICS,
   MOCK_DISPLACED_HOUSEHOLDS,
@@ -11,7 +13,27 @@ import {
   MOCK_GRM_TICKETS,
 } from '@/lib/me-analytics';
 
+// The usufruct ledger read + audit chain require the Node runtime (not Edge).
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const ROUTE = '/api/export';
+
+// Bulk export is restricted to elevated roles. This is ALSO enforced at the
+// edge (proxy.ts matcher + PROTECTED_ROUTES: PROVINCIAL_PIU/FPMU_DIRECTOR), but
+// we re-check in-handler so the route is never reachable without a valid,
+// sufficiently-privileged session even if the edge matcher and PROTECTED_ROUTES
+// ever drift (they have before — see the note in proxy.ts). Defense in depth,
+// matching every other sensitive route.
+const ELEVATED = ['PROVINCIAL_PIU', 'FPMU_DIRECTOR'];
+
 export async function GET(request: NextRequest) {
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  if (!token || !token.role || !ELEVATED.includes(String(token.role))) {
+    await recordAudit({ actor: ANONYMOUS_ACTOR, method: 'GET', route: ROUTE, action: 'DENIED', status: 403 });
+    return NextResponse.json({ error: 'Forbidden: elevated privileges required' }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const rawType = searchParams.get('type') || '';
   const sanitizedType = sanitizeQueryParam(rawType).toLowerCase().trim();
@@ -26,6 +48,17 @@ export async function GET(request: NextRequest) {
   if (!supportedTypes.includes(sanitizedType)) {
     return NextResponse.json({ error: 'UNSUPPORTED_EXPORT_FORMAT' }, { status: 400 });
   }
+
+  // Record the export against the tamper-evident audit chain (ESS10): a bulk
+  // export of programme data is exactly what an access log must capture.
+  await recordAudit({
+    actor: actorFromToken(token),
+    method: 'GET',
+    route: ROUTE,
+    action: 'EXPORT',
+    status: 200,
+    target: sanitizedType,
+  });
 
   if (sanitizedType === 'telemetry') {
     const header = 'district,province,component,population,karez_count,headcount_ratio,poverty_intensity,mpi\n';
@@ -61,9 +94,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (sanitizedType === 'usufruct') {
-    const certificates = Object.entries(store)
-      .filter(([key]) => key.startsWith('usufruct_certificates/'))
-      .map(([key, value]) => ({ id: key.replace('usufruct_certificates/', ''), ...value }));
+    // Read the SAME durable ledger the issuance/list route writes and serves
+    // (persistence seam), so the export matches the fiduciary screen — not the
+    // orphaned in-memory store this route used to read (always empty).
+    const certificates = await getAll<UsufructCertRecord>(FIDUCIARY_COLLECTION, USUFRUCT_SEED);
 
     return NextResponse.json(
       { certs: certificates, count: certificates.length },
@@ -101,4 +135,3 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ error: 'UNSUPPORTED_EXPORT_FORMAT' }, { status: 400 });
 }
-
