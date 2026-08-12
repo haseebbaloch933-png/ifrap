@@ -8,7 +8,7 @@ import crypto from 'crypto';
 
 export const GENESIS_HASH = '0'.repeat(64);
 
-export type AuditAction = 'LIST' | 'CREATE' | 'UPDATE' | 'INGEST' | 'ISSUE_CERT' | 'QUERY' | 'DENIED';
+export type AuditAction = 'LIST' | 'CREATE' | 'UPDATE' | 'INGEST' | 'ISSUE_CERT' | 'QUERY' | 'EXPORT' | 'DENIED';
 
 export interface AuditActor {
   sub: string;
