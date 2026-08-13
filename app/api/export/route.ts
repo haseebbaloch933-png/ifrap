@@ -6,6 +6,7 @@ import { sanitizeQueryParam, validateFilePath } from '@/lib/firebase-sim';
 import { getAll } from '@/lib/server/store';
 import { FIDUCIARY_COLLECTION, USUFRUCT_SEED, type UsufructCertRecord } from '@/lib/fiduciary-ledger';
 import { recordAudit, actorFromToken, ANONYMOUS_ACTOR } from '@/lib/server/audit-log';
+import { sealFields, openFields } from '@/lib/server/field-crypto';
 import {
   MOCK_ME_ANALYTICS,
   MOCK_DISPLACED_HOUSEHOLDS,
@@ -18,6 +19,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const ROUTE = '/api/export';
+
+// Beneficiary/clan identity is sealed at rest (see app/api/fiduciary/route.ts);
+// this export must open the same fields or it leaks ciphertext to the caller.
+const FIDUCIARY_SENSITIVE: (keyof UsufructCertRecord)[] = ['beneficiary', 'clan'];
 
 // Bulk export is restricted to elevated roles. This is ALSO enforced at the
 // edge (proxy.ts matcher + PROTECTED_ROUTES: PROVINCIAL_PIU/FPMU_DIRECTOR), but
@@ -97,7 +102,11 @@ export async function GET(request: NextRequest) {
     // Read the SAME durable ledger the issuance/list route writes and serves
     // (persistence seam), so the export matches the fiduciary screen — not the
     // orphaned in-memory store this route used to read (always empty).
-    const certificates = await getAll<UsufructCertRecord>(FIDUCIARY_COLLECTION, USUFRUCT_SEED);
+    const stored = await getAll<UsufructCertRecord>(
+      FIDUCIARY_COLLECTION,
+      USUFRUCT_SEED.map((c) => sealFields(c, FIDUCIARY_SENSITIVE))
+    );
+    const certificates = stored.map((c) => openFields(c, FIDUCIARY_SENSITIVE));
 
     return NextResponse.json(
       { certs: certificates, count: certificates.length },
