@@ -39,9 +39,9 @@ export default function WebGISPage() {
           </span>
         </h1>
         <p className="text-sm sm:text-base text-slate-300 max-w-4xl leading-relaxed">
-          Interactive spatial mapping overlaying technocratic state irrigation infrastructure grids 
-          against traditional & customary knowledge, Mirab water allocation schedules,
-          and historical Karez subterranean aqueduct networks.
+          Interactive spatial mapping that brings together formal state irrigation infrastructure
+          and traditional &amp; customary water knowledge — Mirab allocation schedules and the historic
+          Karez subterranean aqueduct networks — so both inform IFRAP planning and ESS5 tenure review.
         </p>
       </section>
 
